@@ -1,0 +1,13 @@
+{
+	"name": "富士トライアスロン2024",
+	"datetime": 1725750000000,
+	"weather": "晴れ",
+	"distance": {
+		"swim": 1.5,
+		"bike": 43,
+		"run": 10
+	},
+	"locale": "日本, 山梨",
+	"category": "standard",
+	"url": "https://mtfuji-tri.jp"
+}

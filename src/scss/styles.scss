@@ -1,0 +1,70 @@
+// Import Bootstrap
+@import "bootstrap/scss/bootstrap.scss";
+
+body {
+	font-family: "Century Gothic";
+}
+
+img.emoji {
+	height: auto;
+	width: 1em;
+	vertical-align: top;
+ }
+ 
+ // ---------------------------------------
+#view {
+	display: flex;
+}
+
+#buttons button {
+	display: block;
+}
+
+#controller {
+	width: 14em;
+}
+
+#chart_area {
+	width: calc(90vw - 15em);
+	height: 80vh;
+}
+
+#compare_table {
+	border-collapse: collapse;
+
+	td,
+	th {
+		border: solid black 1px;
+		padding: 0.1ex 0.3em;
+	}
+}
+
+#compare_record {
+	td {
+		text-align: right;
+	}
+
+	.positive {
+		color: black;
+	}
+
+	.positive::before {
+		content: '+';
+	}
+
+	.negative {
+		color: red;
+	}
+
+	.negative::before {
+		content: '-';
+	}
+
+	.zero {
+		color: gray;
+	}
+
+	.zero::before {
+		content: '±';
+	}
+}
