@@ -5,3 +5,5 @@
 
 ソロの人 → ソリストを転じて
 
+# 使用素材
+- IcoMoon - Free: https://icomoon.io/app/
