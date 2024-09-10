@@ -40,6 +40,12 @@ const g = {
 	},
 };
 
+const update_search_string = () => {
+	const race = g.race_file.match(/assets\/(.*?)\.json/)[1];
+	window.history.replaceState(null, null, `?race=${race}&members=${g.member_data.map(x => x.number).join(',')}`);
+};
+
+
 /**
  * search文字列から、表示に関わるパラメータを抽出する
  */
@@ -157,6 +163,10 @@ const generate_element = arg => {
 
 	if ('style' in arg) {
 		Object.keys(arg.style).forEach(x => elem.style[x] = arg.style[x]);
+	}
+
+	if ('attributes' in arg) {
+		Object.keys(arg.attributes).forEach(x => elem.setAttribute(x, arg.attributes[x]));
 	}
 
 	return elem;
@@ -307,6 +317,8 @@ const draw = (lap) => {
 	});
 };
 
+const update_member_list = () => document.querySelector('#member_list').dispatchEvent(new Event('member_list_update'));
+
 window.addEventListener('load', () => {
 	laps.forEach(lap => g[lap].context = document.querySelector(`#view_${lap} canvas`))
 
@@ -369,6 +381,7 @@ window.addEventListener('load', () => {
 
 			g.member_data = g.data.filter(x => g.member_ids.includes(x.number));
 			g.member_data.forEach((x, i) => x.color = color_pallets[i]);
+			update_member_list();
 
 			return json.result;
 		})
@@ -406,8 +419,108 @@ window.addEventListener('load', () => {
 				ul.appendChild(li);
 			});
 		});
+
+	// メンバー追加処理
+	document.querySelector('#new_member_input').addEventListener('input', event => {
+		const v = event.target.value;
+
+		const ul = document.querySelector('#new_member_list');
+		ul.textContent = '';
+
+		if (v === '') return;
+
+		g.data
+			.filter(x => x.number === v || x.display_name.includes(v))
+			// 追加済みメンバーとの重複チェックをここにいれる
+			.map(x => {
+				return {
+					tag: 'li',
+					class: 'list-group-item d-flex',
+					child: [{
+						tag: 'span',
+						text: `${x.display_name}`,
+						class: 'align-self-center',
+					}, {
+						tag: 'span',
+						text: `(${x.number})`,
+						class: 'align-self-center',
+					},
+					{
+						tag: 'button',
+						class: 'btn ms-auto',
+						child: [{
+							tag: 'img',
+							class: 'touchable_small_icon',
+							attributes: {
+								src: 'assets/icon/user-plus.svg',
+							},
+						}]
+					}],
+					object: x,
+				};
+			})
+			.map(x => {
+				const elem = generate_element(x);
+
+				elem.querySelector('button').addEventListener('click', () => {
+					g.member_data.push(x.object);
+					update_member_list();
+				}, { once: true });
+
+				return elem;
+			})
+			.forEach(x => ul.appendChild(x));
+	});
+
+	document.querySelector('#member_list').addEventListener('member_list_update', event => {
+		const ul = event.target;
+
+		ul.textContent = '';
+		g.member_data
+			.map(x => ({
+				object: x,
+				tag: 'li',
+				class: 'list-group-item d-flex',
+				child: [{
+					tag: 'span',
+					text: `${x.display_name}`,
+					class: 'align-self-center',
+				}, {
+					tag: 'span',
+					text: `(${x.number})`,
+					class: 'align-self-center',
+				},
+				{
+					tag: 'button',
+					class: 'btn ms-auto',
+					child: [{
+						tag: 'img',
+						class: 'touchable_small_icon',
+						attributes: {
+							src: 'assets/icon/user-minus.svg',
+						},
+					}]
+				}],
+
+			}))
+			.map(x => {
+				const elem = generate_element(x);
+
+				elem.querySelector('button').addEventListener('click', () => {
+					g.member_data = g.member_data.filter(m => m.number !== x.object.number);
+					update_member_list();
+				}, { once: true });
+
+				return elem;
+			})
+			.forEach(x => ul.appendChild(x));
+
+		update_search_string();
+		draw_all();
+	});
+
 }, { once: true });
 
 window.addEventListener('resume', () => {
-	alert('resume');
+	//	alert('resume');
 });
