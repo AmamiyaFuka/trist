@@ -1,17 +1,43 @@
+const color_pallets = [
+	'#36a2eb',
+	'#ff6384',
+	'#4bc0c0',
+	'#ff9f40',
+	'#9966ff',
+	'#ffcd56',
+	'#c9cbcf',
+];
+
+const laps = ['record', 'swim', 'bike', 'run'];
+
 /**
  * 
  * data: [],
  * 	data.
  * target: filted data,
- * chart: chart object
- * kind: record, swim, bike, run
- * race_file: 'json file url',
- * member_ids: focus bib number(s)
  */
 const g = {
-	kind: 'record',
 	race_file: 'assets/sample.json',
+	data: [],
+	target: [],
 	member_ids: [],
+	member_data: [],
+	swim: {
+		chart: undefined,
+		context: undefined,
+	},
+	bike: {
+		chart: undefined,
+		context: undefined,
+	},
+	run: {
+		chart: undefined,
+		context: undefined,
+	},
+	record: {
+		chart: undefined,
+		context: undefined,
+	},
 };
 
 /**
@@ -41,13 +67,41 @@ const sec_to_hhmmss = sec => {
 	return [h, m, s].map(x => ('00' + x).slice(-2)).join(':');
 };
 
-const clear = () => {
-	if (g.chart) {
-		g.chart.destroy();
-		g.chart = null;
+const sec_to_mss_with_sign = sec => {
+	let sign = '±';
+	if (sec < 0) {
+		sign = '-';
+		sec = -sec;
+	} else if (sec > 0) {
+		sign = '+';
 	}
 
+	const m = Math.floor(sec / 60);
+	const s = sec % 60;
+
+	return `${sign}${m}:${('00' + s).slice(-2)}`;
+};
+
+const clear = lap => {
+	if (g[lap].chart) g[lap].chart.destroy();
+	g[lap].chart = null;
+
+	document.querySelector(`#view_${lap} ul.ranking`).textContent = '';
+};
+
+const clear_all = () => {
+	laps.forEach(lap => clear(lap));
+
 	document.querySelector('#compare_record').textContent = '';
+};
+
+const draw_all = () => {
+	laps.forEach(x => {
+		draw(x);
+		draw_member_ranking(x);
+	});
+
+	record_rows();
 };
 
 const record_rows = () => {
@@ -65,7 +119,7 @@ const record_rows = () => {
 		name_cell.textContent = d.display_name;
 		tr.appendChild(name_cell);
 
-		['swim', 'bike', 'run', 'record'].forEach(k => {
+		laps.forEach(k => {
 			const td_value = document.createElement('td');
 			const td_delta = document.createElement('td');
 
@@ -73,7 +127,7 @@ const record_rows = () => {
 			const delta = d[k + '_sec'] - root[k + '_sec'];
 			td_delta.classList.add(delta > 0 ? 'positive' : delta < 0 ? 'negative' : 'zero');
 			const dv = Math.abs(delta);
-			td_delta.textContent = sec_to_hhmmss(dv);
+			td_delta.textContent = sec_to_mss_with_sign(dv);
 
 			tr.appendChild(td_value);
 			tr.appendChild(td_delta);
@@ -83,10 +137,80 @@ const record_rows = () => {
 	});
 }
 
-const draw = () => {
-	clear();
+/**
+ * オブジェクトをDOM要素にする
+ */
+const generate_element = arg => {
+	const elem = document.createElement(arg.tag);
 
-	const key_sec = g.kind + '_sec';
+	if ('text' in arg) {
+		elem.appendChild(document.createTextNode(arg.text));
+	}
+
+	if ('child' in arg) {
+		arg.child.forEach(x => elem.appendChild(generate_element(x)));
+	}
+
+	if ('class' in arg) {
+		arg.class.split(' ').forEach(x => elem.classList.add(x));
+	}
+
+	if ('style' in arg) {
+		Object.keys(arg.style).forEach(x => elem.style[x] = arg.style[x]);
+	}
+
+	return elem;
+};
+
+/**
+ * ランキング要素を作成
+ * @param {'swim'|'bike'|'run'|'record'} lap 
+ */
+const draw_member_ranking = (lap) => {
+	let front = null;
+	const parent = document.querySelector(`#view_${lap} ul.ranking`);
+
+	g.member_data
+		.map(x => ({ color: x.color, display: x.display_name, time: x[lap + '_sec'] }))
+		.sort((a, b) => a.time - b.time)
+		.map(x => {
+			const delta = front ? sec_to_mss_with_sign(x.time - front, true) : '';
+			front = x.time;
+			return {
+				tag: 'li',
+				child: [{
+					tag: 'span',
+					class: 'circle',
+					style: {
+						'background-color': x.color,
+					},
+				}, {
+					tag: 'span',
+					class: 'display_name',
+					text: x.display,
+				}, {
+					tag: 'span',
+					class: 'time',
+					text: sec_to_hhmmss(x.time),
+				}, {
+					tag: 'span',
+					class: 'delta',
+					text: delta,
+				}],
+			};
+		})
+		.map(x => generate_element(x))
+		.forEach(x => parent.appendChild(x));
+};
+
+/**
+ * チャートを描画
+ * @param {'swim'|'bike'|'run'|'record'} lap 
+ */
+const draw = (lap) => {
+	clear(lap);
+
+	const key_sec = lap + '_sec';
 
 	const time_step_sec = 600;
 
@@ -130,11 +254,12 @@ const draw = () => {
 				}],
 				order: i + 1,
 				pointRadius: 8,
+				backgroundColor: color_pallets[i],
 			};
 		})],
 	};
 
-	g.chart = new Chart(g.context, {
+	g[lap].chart = new Chart(g[lap].context, {
 		type: 'scatter',
 		data,
 		options: {
@@ -166,7 +291,7 @@ const draw = () => {
 					callbacks: {
 						label: (items) => {
 							const d = items.raw.tag;
-							const time = sec_to_hhmmss(d[g.kind + '_sec']);
+							const time = sec_to_hhmmss(d[lap + '_sec']);
 							return `${d.display_name} ${time}, ${items.raw.y}位, 上位${(items.raw.y / g.target.length * 100).toString().substring(0, 4)}%, スコア ${items.raw.score.toString().substring(0, 2)}`
 						},
 					}
@@ -179,35 +304,19 @@ const draw = () => {
 			responsive: true,
 		}
 	});
-
-	record_rows();
 };
 
 window.addEventListener('load', () => {
-	g.context = document.querySelector('#chart');
+	laps.forEach(lap => g[lap].context = document.querySelector(`#view_${lap} canvas`))
+
 
 	{
-		const button_group = document.querySelector('#buttons');
-		[
-			{ id: 'record', label: '総合' },
-			{ id: 'swim', label: 'スイム' },
-			{ id: 'bike', label: 'バイク' },
-			{ id: 'run', label: 'ラン' }
-		].forEach(({ id, label }) => {
-			const button = document.createElement('button');
-			button.id = id;
-			button.textContent = label;
-
-			button.addEventListener('click', () => {
-				g.kind = id;
-				draw();
-			});
-			button_group.appendChild(button);
-		});
+		// デバッグ用
+		document.querySelector('#redraw').addEventListener('click', () => draw_all());
 	}
 
 	{
-
+		// Sectionフィルタ
 		const section_all = document.querySelector('#section_all');
 		const section = document.querySelector('#section');
 
@@ -217,7 +326,8 @@ window.addEventListener('load', () => {
 				const values = Array.from(section.querySelectorAll('option')).filter(x => x.selected).map(x => x.value);
 				g.target = g.data.filter(k => values.includes(k.section));
 			}
-			draw();
+
+			draw_all();
 		};
 
 		section_all.addEventListener('change', () => {
@@ -236,6 +346,10 @@ window.addEventListener('load', () => {
 			g.course = json.course;
 			g.target = g.data = json.result;
 			document.querySelector('#course_name').textContent = g.course.name;
+
+			g.member_data = g.data.filter(x => g.member_ids.includes(x.number));
+			g.member_data.forEach((x, i) => x.color = color_pallets[i]);
+
 			return json.result;
 		})
 		.then(result => {
@@ -252,5 +366,5 @@ window.addEventListener('load', () => {
 
 			return result;
 		})
-		.then(() => draw());
+		.then(() => draw_all());
 }, { once: true });

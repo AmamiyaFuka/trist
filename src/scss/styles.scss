@@ -12,21 +12,9 @@ img.emoji {
  }
  
  // ---------------------------------------
-#view {
-	display: flex;
-}
-
-#buttons button {
-	display: block;
-}
-
-#controller {
-	width: 14em;
-}
-
 #chart_area {
 	width: calc(90vw - 15em);
-	height: 80vh;
+	height: 35vh;
 }
 
 #compare_table {
@@ -39,7 +27,47 @@ img.emoji {
 	}
 }
 
+section.view {
+	margin: 1em;
+	padding: 1em;
+	border-radius: 1em;
+	background-color: #eee;
+
+	h2 {
+		font-size: medium;
+		font-weight: 700;
+	}
+
+	ul {
+		margin: 0;
+		padding: 0;
+
+		li {
+			border-radius: 100vh;
+			margin: 0.5em;
+			background-color: #ddd;
+			list-style-type: none;
+			padding: 0 1em;
+			align-items: center;
+			display: grid;
+			grid-template-columns: 1fr 4fr 4fr 4fr;
+
+			.circle {
+				display: inline-block;
+				width: 1em;
+				height: 1em;
+				border-radius: 0.5em;
+			}
+
+			.delta {
+				text-align: end;
+			}
+		}
+	}
+}
+
 #compare_record {
+	display: none;
 	td {
 		text-align: right;
 	}

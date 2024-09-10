@@ -21,17 +21,18 @@ html(lang='ja')
     body(style="background-image: url('assets/bg_body.png');")
         // Header - set the background image for the header in the line below
         header
-            // Responsive navbar
-            nav
+            h1 Trist
+            
+        nav
 
         // Content section
         section
             h1#course_name
 
-        #view
-            #controller 
-                #buttons 
+        .debug 
+            button#redraw 再描画
 
+        #view
             #section_controller 
                 p
                     label
@@ -40,21 +41,43 @@ html(lang='ja')
                 p
                     select#section(multiple=true, disabled=true)
 
-            #chart_area
-                canvas#chart 
-                table#compare_table 
-                    thead 
-                        tr 
-                            th 名前
-                            th スイム
-                            th ⊿
-                            th バイク
-                            th ⊿
-                            th ラン
-                            th ⊿
-                            th 総合
-                            th ⊿
-                    tbody#compare_record 
+            section.view#view_record
+                h2 総合
+                .chart
+                    canvas
+                ul.ranking 
+
+            section.view#view_swim
+                h2 スイム
+                .chart
+                    canvas
+                ul.ranking 
+
+            section.view#view_bike
+                h2 バイク
+                .chart
+                    canvas
+                ul.ranking 
+
+            section.view#view_run
+                h2 ラン
+                .chart
+                    canvas
+                ul.ranking 
+
+            table#compare_table 
+                thead 
+                    tr 
+                        th 名前
+                        th スイム
+                        th ⊿
+                        th バイク
+                        th ⊿
+                        th ラン
+                        th ⊿
+                        th 総合
+                        th ⊿
+                tbody#compare_record 
 
         // Footer
         footer.py-3(style="background-color: hsl(240deg, 80%, 8%);")
