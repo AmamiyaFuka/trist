@@ -1,0 +1,20 @@
+{
+	"course":{
+		"name": "サンプルデータ",
+		"starttime": 1725700000000,
+		"weather": "晴れ",
+		"distance": {
+			"swim": 1.5,
+			"bike": 40,
+			"run": 10
+		},
+		"locale": "日本, 東京都",
+		"category": "standard",
+		"url": ""
+	},
+	"result":[
+		{"display_name":"昭和太郎","rank":"OPEN","number":"1","section":"オープン","record_sec":3600,"swim_sec":1200,"bike_sec":1200,"run_sec":1200},
+		{"display_name":"平成次郎","rank":"1","number":"2","section":"平成生まれ","record_sec":3100,"swim_sec":1100,"bike_sec":1000,"run_sec":1000},
+		{"display_name":"令和三郎","rank":"DSQ","number":"3","section":"ZZ世代","record_sec":3800,"swim_sec":1300,"bike_sec":1050,"run_sec":1450}
+	]
+}
