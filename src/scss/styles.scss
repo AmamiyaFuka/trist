@@ -9,43 +9,58 @@ img.emoji {
 	height: auto;
 	width: 1em;
 	vertical-align: top;
- }
- 
+}
+
+
+.touchable_icon {
+	padding: 0.5vw;
+	width: 9vw;
+	height: 9vw;
+	margin: 0;
+	fill: currentColor;
+}
+
+.touchable_small_icon {
+	padding: 0.5vw;
+	width: 6.7vw;
+	height: 6.7vw;
+	margin: 0;
+	fill: currentColor;
+}
+
 // ---------------------------------------
+
 
 header {
 	display: grid;
 	grid-template-columns: auto max-content;
-	
+
 	background-color: black;
 	color: darkgray;
+
+	align-items: center;
+	padding: 3vw;
 
 	h1 {
 		font-weight: 800;
 		margin: 0;
 	}
 
-	img {
-		padding: 0.3em;
-		width: 9vw;
-		margin: 3vw;
-		fill: currentColor;
-
-		background-color: darkgray;
-		border-radius: 2vw;
+	.touchable_icon:hover {
+		fill: white;
 	}
 }
 
 #course {
-	background-color: black;
-	color: white;
+	background-color: hsl(210, 80%, 42%);
+	color: hsl(0, 0%, 90%);
 
 	h1 {
 		padding: 0.2ex 0;
 		text-align: center;
 	}
 
-	#course_summary p{
+	#course_summary p {
 		margin: 0;
 		font-size: 80%;
 		width: 100%;
@@ -62,12 +77,12 @@ section.view {
 
 	h3 {
 		font-size: 67%;
-		color:darkgray;
+		color: darkgray;
 
 		width: 100%;
 		height: 0;
 		text-align: end;
-		margin:0
+		margin: 0
 	}
 
 	h2 {
@@ -75,7 +90,7 @@ section.view {
 		font-weight: 700;
 
 		.distance {
-			font-size: 80%;	
+			font-size: 80%;
 		}
 	}
 
@@ -102,6 +117,35 @@ section.view {
 
 			.delta {
 				text-align: end;
+			}
+		}
+	}
+}
+
+#navi {
+	margin-top: 12ex;
+	height: calc(90vh - 12ex);
+
+	#race_list {
+		padding: 0;
+
+		li {
+			display: inline-block;
+
+			background-color: lightgray;
+			border-radius: 2.5ex;
+
+			padding: 0.7ex 1.2em;
+			margin: 0.2em;
+
+			font-weight: 800;
+			color: black;
+
+			white-space: nowrap;
+
+			a {
+				text-decoration: none;
+				color: currentColor;
 			}
 		}
 	}

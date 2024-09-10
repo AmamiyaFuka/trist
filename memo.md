@@ -7,3 +7,16 @@
 
 # 使用素材
 - IcoMoon - Free: https://icomoon.io/app/
+  - cog, eye-blocked, eye, menu, user-minus, user-plus
+- SILHOUETTE ILLUST:  https://www.silhouette-illust.com/
+  - 水泳、自転車競技、マラソン
+
+# SVGを利用するとき
+svg
+    use
+
+で読み込む
+読み込まれる側のルートにIDを振っておく。useのxlinkさきにもIDを指定する
+
+# 目指すところ
+- トライアスリートじゃない人とも、会話が盛り上がる

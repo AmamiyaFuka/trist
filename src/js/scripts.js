@@ -352,6 +352,8 @@ window.addEventListener('load', () => {
 			document.querySelector('#view_record .distance').textContent = g.course.category;
 
 			{
+				document.querySelector('title').textContent = `${g.course.name} :: Trist`;
+
 				const course_summary = document.querySelector('#course_summary');
 				[
 					`${new Date(g.course.starttime).toLocaleString('ja-JP')} スタート`,
@@ -385,4 +387,27 @@ window.addEventListener('load', () => {
 			return result;
 		})
 		.then(() => draw_all());
+
+	//レースリスト
+	fetch('./assets/list.json')
+		.then(res => res.json())
+		.then(json => {
+			const ul = document.querySelector('#race_list');
+			ul.textContent = '';
+
+			json.forEach(({ race, label }) => {
+				const li = document.createElement('li');
+				const a = document.createElement('a');
+
+				a.textContent = label;
+				a.setAttribute('href', '?race=' + race);
+
+				li.appendChild(a);
+				ul.appendChild(li);
+			});
+		});
 }, { once: true });
+
+window.addEventListener('resume', () => {
+	alert('resume');
+});

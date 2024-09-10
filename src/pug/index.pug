@@ -3,10 +3,10 @@ html(lang='ja')
     head
         meta(charset='utf-8')
         meta(name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no')
-        meta(name='description' content='トライアスロンリザルトビジュアライザ')
+        meta(name='description' content='Visualize view for result of triathlon')
         meta(name='author' content='Fuka AMAMIYA')
 
-        title レース名 :: トライアスロンビジュアライザ
+        title レース名 :: Trist
 
         // Favicon
         link(rel='icon' type='image/webp' href='assets/favicon.ico')
@@ -22,9 +22,50 @@ html(lang='ja')
         // Header - set the background image for the header in the line below
         header
             h1 Trist
-            img(src='assets/icon/cog.svg')
+            div(data-bs-toggle='modal' data-bs-target='#navi')
+                svg.touchable_icon(version='1.1' xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32')
+                    use(xlink:href='assets/icon/cog.svg#root')
 
-        nav
+        nav#navi.modal
+            .modal-dialog.modal-dialog-scrollable
+                .modal-content
+                    .modal-header 
+                        .nav.nav-pills.nav-justified
+                            a.nav-link.active(data-bs-toggle='tab' data-bs-target='#race-tab') Race
+                            a.nav-link(data-bs-toggle='tab' data-bs-target='#member-tab') Member
+                            a.nav-link.d-none(data-bs-toggle='tab' data-bs-target='#group-tab') Group
+                        button.btn-close(type='button' aria-label='Close' data-bs-dismiss='modal')
+                    .modal-body.tab-content 
+                        .tab-pane.fade.show.active#race-tab
+                            ul#race_list
+                        .tab-pane.fade#member-tab
+                            .d-flex
+                                h5.align-self-center.me-3.mt-auto.mb-auto Add
+                                label.align-self-center.flex-grow-1
+                                    input#new_member_input.w-100(placeholder='名前, ゼッケン番号') 
+                            ul#new_member_list.list-group.mt-2
+                                li.list-group-item.d-flex
+                                    span.align-self-center テンプレート 
+                                    button.btn.ms-auto(type='button')
+                                        svg.touchable_small_icon(version='1.1' xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32')
+                                            use(xlink:href='assets/icon/user-plus.svg#root')
+                                li.list-group-item bbbbbbbbbbbb 
+                                li.list-group-item ccccccccccccc
+                            h5 Members
+                            ul#member_list.list-group
+                                li.list-group-item.d-flex
+                                    span.align-self-center テンプレート2
+                                    button.btn.ms-auto(type='button')
+                                        svg.touchable_small_icon(version='1.1' xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32')
+                                            use(xlink:href='assets/icon/user-minus.svg#root')
+                                li.list-group-item aaaaaaaaa 
+                                li.list-group-item bbbbbbbbbbbb 
+                                li.list-group-item ccccccccccccc
+
+                        .tab-pane.fade.d-none#group-tab
+                            p Sectionの選択を切り替えるようにする
+                    .modal-footer 
+                        p SHARE
 
         .debug 
             button#redraw 再描画
