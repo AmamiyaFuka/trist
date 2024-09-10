@@ -22,17 +22,12 @@ html(lang='ja')
         // Header - set the background image for the header in the line below
         header
             h1 Trist
-            
-        nav
 
-        // Content section
-        section
-            h1#course_name
+        nav
 
         .debug 
             button#redraw 再描画
 
-        #view
             #section_controller 
                 p
                     label
@@ -41,26 +36,40 @@ html(lang='ja')
                 p
                     select#section(multiple=true, disabled=true)
 
+        // Content section
+        section#course
+            h1.course_name
+            #course_summary
+
+        #view
             section.view#view_record
+                h3.course_name
                 h2 総合
+                    span.distance
                 .chart
                     canvas
                 ul.ranking 
 
             section.view#view_swim
+                h3.course_name
                 h2 スイム
+                    span.distance
                 .chart
                     canvas
                 ul.ranking 
 
             section.view#view_bike
+                h3.course_name
                 h2 バイク
+                    span.distance
                 .chart
                     canvas
                 ul.ranking 
 
             section.view#view_run
+                h3.course_name
                 h2 ラン
+                    span.distance
                 .chart
                     canvas
                 ul.ranking 

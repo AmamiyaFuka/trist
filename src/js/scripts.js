@@ -302,6 +302,7 @@ const draw = (lap) => {
 				},
 			},
 			responsive: true,
+			aspectRatio: 1,
 		}
 	});
 };
@@ -345,7 +346,24 @@ window.addEventListener('load', () => {
 			// jsonの内、dataを除外して g.course に格納する
 			g.course = json.course;
 			g.target = g.data = json.result;
-			document.querySelector('#course_name').textContent = g.course.name;
+			Array.from(document.querySelectorAll('.course_name')).forEach(elem => elem.textContent = g.course.name);
+
+			['swim', 'bike', 'run'].forEach(x => document.querySelector(`#view_${x} .distance`).textContent = g.course.distance[x] + ' km');
+			document.querySelector('#view_record .distance').textContent = g.course.category;
+
+			{
+				const course_summary = document.querySelector('#course_summary');
+				[
+					`${new Date(g.course.starttime).toLocaleString('ja-JP')} スタート`,
+					`場所：${g.course.locale} ${g.course.weather}`,
+					`${g.course.category} distance`,
+					`swim ${g.course.distance.swim} km, bike ${g.course.distance.bike} km, run ${g.course.distance.run} km`,
+				].forEach(text => {
+					const p = document.createElement('p');
+					p.textContent = text;
+					course_summary.appendChild(p);
+				})
+			}
 
 			g.member_data = g.data.filter(x => g.member_ids.includes(x.number));
 			g.member_data.forEach((x, i) => x.color = color_pallets[i]);
