@@ -15,9 +15,14 @@ class ColorPallets {
 	new() {
 		return this.pallets[this.index = (this.index + 1) % this.pallets.length];
 	};
+
+	swim(alpha) { return `hsla(198, 82%, 75%, ${alpha ?? '0'})`; };
+	bike(alpha) { return `hsla(0, 69%, 100%, ${alpha ?? '0'})`; };
+	run(alpha) { return `hsla(134, 46%, 80%, ${alpha ?? '0'})`; };
+	record(alpha) { return `hsla(43, 41%, 100%, ${alpha ?? '0'})`; };
 };
 
-const color_pallets = new ColorPallets
+const color_pallets = new ColorPallets();
 
 const laps = ['record', 'swim', 'bike', 'run'];
 
@@ -69,7 +74,10 @@ const update_search_string = () => {
 	}));
 
 	// パラメータから必要なものをグローバル変数に格納
-	if (r.race) g.race_file = `assets/${r.race}.json`;
+	if (r.race) {
+		g.race_file = `assets/${r.race}.json`;
+		g.race = r.race;
+	}
 	if (r.members) g.member_ids = r.members.split(',');
 }
 
@@ -420,10 +428,17 @@ window.addEventListener('load', () => {
 
 			json.forEach(({ race, label }) => {
 				const li = document.createElement('li');
+				['btn', 'rounded-pill', 'm-2'].forEach(x => li.classList.add(x));
+
 				const a = document.createElement('a');
 
 				a.textContent = label;
 				a.setAttribute('href', '?race=' + race);
+
+				if (g.race === race) {
+					a.classList.add('pe-none');
+					li.classList.add('active');
+				}
 
 				li.appendChild(a);
 				ul.appendChild(li);

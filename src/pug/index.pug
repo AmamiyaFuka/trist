@@ -18,10 +18,9 @@ html(lang='ja')
         script(src='js/scripts.js')
 
 
-    body(style="background-image: url('assets/bg_body.png');")
-        // Header - set the background image for the header in the line below
-        header
-            h1 Trist
+    body(style='background-image: url("assets/bg_body.png");')
+        header(style='background-image: url("assets/trist_logo.png");')
+            h1.invisible Trist
             div(data-bs-toggle='modal' data-bs-target='#navi')
                 svg.touchable_icon(version='1.1' xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32')
                     use(xlink:href='assets/icon/cog.svg#root')
@@ -44,12 +43,6 @@ html(lang='ja')
                                 label.align-self-center.flex-grow-1
                                     input#new_member_input.w-100(placeholder='名前, ゼッケン番号') 
                             ul#new_member_list.list-group.mt-2
-                            //-
-                                li.list-group-item.d-flex
-                                    span.align-self-center テンプレート 
-                                    button.btn.ms-auto(type='button')
-                                        svg.touchable_small_icon(version='1.1' xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32')
-                                            use(xlink:href='assets/icon/user-plus.svg#root')
                             h5 Members
                             ul#member_list.list-group
 
@@ -75,35 +68,35 @@ html(lang='ja')
             #course_summary
 
         #view
-            section.view#view_record
+            section.view.bg-record#view_record
                 h3.course_name
-                h2 総合
+                h2.marker-record 総合
                     span.distance
                 .chart
                     canvas
                 ul.ranking 
 
-            section.view#view_swim
+            section.view.bg-swim#view_swim
                 h3.course_name
-                h2 スイム
+                h2.marker-swim スイム
                     img.icon_in_text(src='assets/icon/swim.png')
                     span.distance
                 .chart
                     canvas
                 ul.ranking 
 
-            section.view#view_bike
+            section.view.bg-bike#view_bike
                 h3.course_name
-                h2 バイク
+                h2.marker-bike バイク
                     img.icon_in_text(src='assets/icon/bike.png')
                     span.distance
                 .chart
                     canvas
                 ul.ranking 
 
-            section.view#view_run
+            section.view.bg-run#view_run
                 h3.course_name
-                h2 ラン
+                h2.marker-run ラン
                     img.icon_in_text(src='assets/icon/run.png')
                     span.distance
                 .chart

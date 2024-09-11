@@ -34,6 +34,33 @@ img.emoji {
 	vertical-align: baseline;
 }
 
+:root {
+	--record-color: hsl( 43deg 100% 45% / 0.5);
+	--swim-color  : hsl(198deg  69% 45% / 0.5);
+	--bike-color  : hsl(  0deg 100% 45% / 0.5);
+	--run-color   : hsl(134deg  48% 45% / 0.5);
+}
+
+.marker-record {
+	background: linear-gradient(transparent 65%, var(--record-color) 65%, var(--record-color) 100%);
+	width: fit-content;
+}
+
+.marker-swim {
+	background: linear-gradient(transparent 65%, var(--swim-color) 65%, var(--swim-color) 100%);
+	width: fit-content;
+}
+
+.marker-bike {
+	background: linear-gradient(transparent 65%, var(--bike-color) 65%, var(--bike-color) 100%);
+	width: fit-content;
+}
+
+.marker-run {
+	background: linear-gradient(transparent 65%, var(--run-color) 65%, var(--run-color) 100%);
+	width: fit-content;
+}
+
 // ---------------------------------------
 
 
@@ -41,8 +68,10 @@ header {
 	display: grid;
 	grid-template-columns: auto max-content;
 
-	background-color: black;
-	color: darkgray;
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-color: #111;
+	color: #eee;
 
 	align-items: center;
 	padding: 3vw;
@@ -136,18 +165,9 @@ section.view {
 		padding: 0;
 
 		li {
-			display: inline-block;
-
 			background-color: lightgray;
-			border-radius: 2.5ex;
-
-			padding: 0.7ex 1.2em;
-			margin: 0.2em;
-
 			font-weight: 800;
-			color: black;
-
-			white-space: nowrap;
+			// white-space: nowrap;
 
 			a {
 				text-decoration: none;
