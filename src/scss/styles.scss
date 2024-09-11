@@ -93,6 +93,8 @@ header {
 	h1 {
 		padding: 0.2ex 0;
 		text-align: center;
+		
+		word-break: auto-phrase;
 	}
 
 	#course_summary p {

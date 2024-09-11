@@ -1,4 +1,10 @@
-[{
-	"race": "fuji2024",
-	"label": "富士2024"
-}]
+[
+	{
+		"race": "fuji2024",
+		"label": "富士2024"
+	},
+	{
+		"race": "wakashio_14th",
+		"label": "わかしお第14回(2023) ODT"
+	}
+]
