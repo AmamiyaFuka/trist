@@ -1,12 +1,23 @@
-const color_pallets = [
-	'#36a2eb',
-	'#ff6384',
-	'#4bc0c0',
-	'#ff9f40',
-	'#9966ff',
-	'#ffcd56',
-	'#c9cbcf',
-];
+class ColorPallets {
+	constructor() {
+		this.pallets = [
+			'#36a2eb',
+			'#ff6384',
+			'#4bc0c0',
+			'#ff9f40',
+			'#9966ff',
+			'#ffcd56',
+			'#c9cbcf',
+		];
+		this.index = 0;
+	};
+
+	new() {
+		return this.pallets[this.index = (this.index + 1) % this.pallets.length];
+	};
+};
+
+const color_pallets = new ColorPallets
 
 const laps = ['record', 'swim', 'bike', 'run'];
 
@@ -65,6 +76,8 @@ const update_search_string = () => {
 /**
  * 秒数をHH:mm:ss表記にする
  * 3200 -> 00:53:20
+ * @param {number} sec 
+ * @returns {string}
  */
 const sec_to_hhmmss = sec => {
 	const h = Math.floor(sec / 3600);
@@ -73,6 +86,11 @@ const sec_to_hhmmss = sec => {
 	return [h, m, s].map(x => ('00' + x).slice(-2)).join(':');
 };
 
+/**
+ * 秒数を、符号付のm:ss表記にする
+ * @param {number} sec 
+ * @returns {string}
+ */
 const sec_to_mss_with_sign = sec => {
 	let sign = '±';
 	if (sec < 0) {
@@ -88,6 +106,11 @@ const sec_to_mss_with_sign = sec => {
 	return `${sign}${m}:${('00' + s).slice(-2)}`;
 };
 
+/**
+ * 各ラップカードの内容をクリアする
+ * 特にチャートやランキングの再構築前に必要となる
+ * @param {'swim'|'bike'|'run'|'record'} lap 
+ */
 const clear = lap => {
 	if (g[lap].chart) g[lap].chart.destroy();
 	g[lap].chart = null;
@@ -95,56 +118,27 @@ const clear = lap => {
 	document.querySelector(`#view_${lap} ul.ranking`).textContent = '';
 };
 
+/**
+ * すべてのラップカードの内容をクリアする
+ */
 const clear_all = () => {
 	laps.forEach(lap => clear(lap));
-
-	document.querySelector('#compare_record').textContent = '';
 };
 
+/**
+ * すべてのラップカードのチャート、ランキングを描画する
+ */
 const draw_all = () => {
 	laps.forEach(x => {
 		draw(x);
 		draw_member_ranking(x);
 	});
-
-	record_rows();
 };
 
-const record_rows = () => {
-	if (g.member_ids.length === 0) return;
-
-	const tbody = document.querySelector('#compare_record');
-	const root = g.data.find(x => x.number === g.member_ids[0]);
-
-	g.member_ids.forEach(id => {
-		const d = g.data.find(x => x.number === id);
-
-		const tr = document.createElement('tr');
-
-		const name_cell = document.createElement('th');
-		name_cell.textContent = d.display_name;
-		tr.appendChild(name_cell);
-
-		laps.forEach(k => {
-			const td_value = document.createElement('td');
-			const td_delta = document.createElement('td');
-
-			td_value.textContent = sec_to_hhmmss(d[k + '_sec']);
-			const delta = d[k + '_sec'] - root[k + '_sec'];
-			td_delta.classList.add(delta > 0 ? 'positive' : delta < 0 ? 'negative' : 'zero');
-			const dv = Math.abs(delta);
-			td_delta.textContent = sec_to_mss_with_sign(dv);
-
-			tr.appendChild(td_value);
-			tr.appendChild(td_delta);
-		});
-
-		tbody.appendChild(tr);
-	});
-}
-
 /**
- * オブジェクトをDOM要素にする
+ * 
+ * @param {ParsedElement} arg 
+ * @returns {Element}
  */
 const generate_element = arg => {
 	const elem = document.createElement(arg.tag);
@@ -173,7 +167,17 @@ const generate_element = arg => {
 };
 
 /**
- * ランキング要素を作成
+ * アイコンSVG要素を作成する
+ * SVGデータは、assets/icon ディレクトリ下に保存されている必要がある
+ * @param {string} name 
+ * @returns {Element}
+ */
+const generate_svg_icon_element = name => {
+	return document.querySelector('#icon_' + name).cloneNode(true);
+};
+
+/**
+ * ランキング要素を描画する
  * @param {'swim'|'bike'|'run'|'record'} lap 
  */
 const draw_member_ranking = (lap) => {
@@ -214,7 +218,7 @@ const draw_member_ranking = (lap) => {
 };
 
 /**
- * チャートを描画
+ * チャートを描画する
  * @param {'swim'|'bike'|'run'|'record'} lap 
  */
 const draw = (lap) => {
@@ -252,8 +256,7 @@ const draw = (lap) => {
 			data: accumulate,
 			// backgroundColor: 'rgb(000, 111, 222)',
 			order: 1000,
-		}, ...g.member_ids.map((id, i) => {
-			const d = g.data.find(data => data.number === id);
+		}, ...g.member_data.map((d, i) => {
 			const x = d[key_sec];
 			return {
 				label: d.display_name,
@@ -264,7 +267,7 @@ const draw = (lap) => {
 				}],
 				order: i + 1,
 				pointRadius: 8,
-				backgroundColor: color_pallets[i],
+				backgroundColor: d.color,
 			};
 		})],
 	};
@@ -317,6 +320,10 @@ const draw = (lap) => {
 	});
 };
 
+/**
+ * メンバーリストが変更されたイベントを発行する
+ * メンバーリスト要素の再構築が期待される
+ */
 const update_member_list = () => document.querySelector('#member_list').dispatchEvent(new Event('member_list_update'));
 
 window.addEventListener('load', () => {
@@ -355,7 +362,6 @@ window.addEventListener('load', () => {
 	fetch(g.race_file)
 		.then(res => res.json())
 		.then(json => {
-			// jsonの内、dataを除外して g.course に格納する
 			g.course = json.course;
 			g.target = g.data = json.result;
 			Array.from(document.querySelectorAll('.course_name')).forEach(elem => elem.textContent = g.course.name);
@@ -380,7 +386,11 @@ window.addEventListener('load', () => {
 			}
 
 			g.member_data = g.data.filter(x => g.member_ids.includes(x.number));
-			g.member_data.forEach((x, i) => x.color = color_pallets[i]);
+			delete g.member_ids;
+
+			g.member_data.forEach((x, i) => {
+				if (!x.color) x.color = color_pallets.new();
+			});
 			update_member_list();
 
 			return json.result;
@@ -448,24 +458,26 @@ window.addEventListener('load', () => {
 					{
 						tag: 'button',
 						class: 'btn ms-auto',
-						child: [{
-							tag: 'img',
-							class: 'touchable_small_icon',
-							attributes: {
-								src: 'assets/icon/user-plus.svg',
-							},
-						}]
 					}],
 					object: x,
 				};
 			})
 			.map(x => {
 				const elem = generate_element(x);
+				const button = elem.querySelector('button');
 
-				elem.querySelector('button').addEventListener('click', () => {
+				button.addEventListener('click', () => {
+					if (!x.object.color) x.object.color = color_pallets.new();
 					g.member_data.push(x.object);
+
+					ul.removeChild(elem);
+
 					update_member_list();
 				}, { once: true });
+
+				const icon = generate_svg_icon_element('user-plus');
+				icon.classList.add('touchable_small_icon');
+				button.appendChild(icon);
 
 				return elem;
 			})
@@ -493,23 +505,21 @@ window.addEventListener('load', () => {
 				{
 					tag: 'button',
 					class: 'btn ms-auto',
-					child: [{
-						tag: 'img',
-						class: 'touchable_small_icon',
-						attributes: {
-							src: 'assets/icon/user-minus.svg',
-						},
-					}]
 				}],
 
 			}))
 			.map(x => {
 				const elem = generate_element(x);
+				const button = elem.querySelector('button');
 
-				elem.querySelector('button').addEventListener('click', () => {
+				button.addEventListener('click', () => {
 					g.member_data = g.member_data.filter(m => m.number !== x.object.number);
 					update_member_list();
 				}, { once: true });
+
+				const icon = generate_svg_icon_element('user-minus');
+				icon.classList.add('touchable_small_icon');
+				button.appendChild(icon);
 
 				return elem;
 			})
