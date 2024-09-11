@@ -9,19 +9,27 @@
 	},
 	{
 		"race": "goto_international_2024_a",
-		"label": "五島国際2024 A"
+		"label": "五島国際2024A"
 	},
 	{
 		"race": "goto_international_2024_b",
-		"label": "五島国際2024 B"
+		"label": "五島国際2024B"
 	},
 	{
 		"race": "sado_international_2024_a",
-		"label": "佐渡国際2024 A"
+		"label": "佐渡国際2024A"
 	},
 	{
 		"race": "sado_international_2024_b",
-		"label": "佐渡国際2024 B"
+		"label": "佐渡国際2024B"
+	},
+	{
+		"race": "irako_2024_a",
+		"label": "伊良湖2024A"
+	},
+	{
+		"race": "irako_2024_b",
+		"label": "伊良湖2024B"
 	},
 	{
 		"race": "wakashio_14th",

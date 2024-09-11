@@ -8,21 +8,21 @@ const formatter = new Formatter();
 
 // 今はハードコーティング
 const course_id = {
-	"name": "2024佐渡国際 トライアスロン大会 国際B",
-	"starttime": new Date('2024-09-01T07:30+09:00').getTime(),
+	"name": "第38回2024 トライアスロン伊良湖大会 B",
+	"starttime": new Date('2024-09-08T10:00+09:00').getTime(),
 	"weather": "晴れ",
 	"distance": {
-		"swim": 2.0,
-		"bike": 108,
-		"run": 21.1
+		"swim": 1.5,
+		"bike": 42.0,
+		"run": 10.0
 	},
-	"locale": "日本, 新潟県",
-	"category": "ironman70.3",
-	"url": "https://www.scsf.jp/triathlon/",
+	"locale": "日本, 愛知県",
+	"category": "standard",
+	"url": "https://www.irago-triathlon.jp/",
 };
 // JTUのリザルトページURLのprogram_id
-const result_id = '281_2';
-const output_file = 'sado_international_2024_b';
+const result_id = '282_2';
+const output_file = 'irako_2024_b';
 
 Promise.all([
 	Course.get(course_id),
