@@ -6,7 +6,6 @@ export default class {
 		const table = json.res.body.result_list;
 
 		const hmmss_to_number = hmmss => {
-			console.log(hmmss);
 			return hmmss?.split(':').reduce((a, b) => a * 60 + parseInt(b), 0);
 		};
 

@@ -196,8 +196,9 @@ const draw_member_ranking = (lap) => {
 		.map(x => ({ color: x.color, display: x.display_name, time: x[lap + '_sec'] }))
 		.sort((a, b) => a.time - b.time)
 		.map(x => {
-			const delta = front ? sec_to_mss_with_sign(x.time - front, true) : '';
-			front = x.time;
+			const d = x.time - front;
+			const delta = (front && !isNaN(d)) ? sec_to_mss_with_sign(x.time - front, true) : '';
+			if (!isNaN(d)) front = x.time;
 			return {
 				tag: 'li',
 				child: [{
@@ -213,7 +214,7 @@ const draw_member_ranking = (lap) => {
 				}, {
 					tag: 'span',
 					class: 'time',
-					text: sec_to_hhmmss(x.time),
+					text: x.time ? sec_to_hhmmss(x.time) : 'No data',
 				}, {
 					tag: 'span',
 					class: 'delta',
@@ -237,6 +238,9 @@ const draw = (lap) => {
 	const time_step_sec = 600;
 
 	const valid_sec = g.target.map(x => x[key_sec]).filter(x => x);
+
+	if (valid_sec.length < 2) return;
+
 	const time_min = Math.floor(Math.min(...valid_sec) / time_step_sec) * time_step_sec;
 	const time_max = Math.ceil(Math.max(...valid_sec) / time_step_sec) * time_step_sec;
 
