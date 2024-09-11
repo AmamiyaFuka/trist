@@ -10,6 +10,12 @@
   - cog, eye-blocked, eye, menu, user-minus, user-plus
 - SILHOUETTE ILLUST:  https://www.silhouette-illust.com/
   - 水泳、自転車競技、マラソン
+- X
+  - X公式ロゴ
+
+# SNS
+Xシェア用リンク 
+https://x.com/intent/tweet?text=表示するテキスト&url=ページのURL
 
 # SVGを利用するとき
 svg

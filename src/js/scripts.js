@@ -33,7 +33,7 @@ const laps = ['record', 'swim', 'bike', 'run'];
  * target: filted data,
  */
 const g = {
-	race_file: 'assets/sample.json',
+	race_file: 'assets/result/sample.json',
 	data: [],
 	target: [],
 	member_ids: [],
@@ -57,7 +57,7 @@ const g = {
 };
 
 const update_search_string = () => {
-	const race = g.race_file.match(/assets\/(.*?)\.json/)[1];
+	const race = g.race_file.match(/assets\/result\/(.*?)\.json/)[1];
 	window.history.replaceState(null, null, `?race=${race}&members=${g.member_data.map(x => x.number).join(',')}`);
 };
 
@@ -75,7 +75,7 @@ const update_search_string = () => {
 
 	// パラメータから必要なものをグローバル変数に格納
 	if (r.race) {
-		g.race_file = `assets/${r.race}.json`;
+		g.race_file = `assets/result/${r.race}.json`;
 		g.race = r.race;
 	}
 	if (r.members) g.member_ids = r.members.split(',');
