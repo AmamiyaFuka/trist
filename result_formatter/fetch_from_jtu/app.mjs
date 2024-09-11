@@ -8,21 +8,21 @@ const formatter = new Formatter();
 
 // 今はハードコーティング
 const course_id = {
-	"name": "五島長崎国際 トライアスロン2024 B",
-	"starttime": new Date('2024-06-23T07:00+09:00').getTime(),
+	"name": "2024佐渡国際 トライアスロン大会 国際B",
+	"starttime": new Date('2024-09-01T07:30+09:00').getTime(),
 	"weather": "晴れ",
 	"distance": {
-		"swim": 1.6,
-		"bike": 101.7,
+		"swim": 2.0,
+		"bike": 108,
 		"run": 21.1
 	},
-	"locale": "日本, 長崎県",
-	"category": "middle",
-	"url": "https://gototri.com/",
+	"locale": "日本, 新潟県",
+	"category": "ironman70.3",
+	"url": "https://www.scsf.jp/triathlon/",
 };
 // JTUのリザルトページURLのprogram_id
-const result_id = '257_2';
-const output_file = 'goto_international_2024_b';
+const result_id = '281_2';
+const output_file = 'sado_international_2024_b';
 
 Promise.all([
 	Course.get(course_id),

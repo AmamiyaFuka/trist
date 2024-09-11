@@ -4,16 +4,27 @@
 		"label": "富士2024"
 	},
 	{
-		"race": "wakashio_14th",
-		"label": "わかしお第14回(2023) ODT"
-	},{
 		"race": "ishitora2024",
 		"label": "イシトラ2024"
-	},{
+	},
+	{
 		"race": "goto_international_2024_a",
 		"label": "五島国際2024 A"
-	},{
+	},
+	{
 		"race": "goto_international_2024_b",
 		"label": "五島国際2024 B"
+	},
+	{
+		"race": "sado_international_2024_a",
+		"label": "佐渡国際2024 A"
+	},
+	{
+		"race": "sado_international_2024_b",
+		"label": "佐渡国際2024 B"
+	},
+	{
+		"race": "wakashio_14th",
+		"label": "わかしお第14回(2023) ODT"
 	}
 ]
