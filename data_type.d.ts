@@ -20,7 +20,7 @@ interface Course {
 		run: number;
 	};
 	locale: string;
-	category: 'standard' | 'super_sprint' | 'sprint' | 'middle' | 'long' | 'ironman' | 'ironman70.3' | '101mile' | 'other';
+	category: 'standard' | 'super_sprint' | 'sprint' | 'middle' | 'long' | 'other';
 	url: string?;
 }
 
