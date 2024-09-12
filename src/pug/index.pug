@@ -106,10 +106,12 @@ html(lang='ja')
                     canvas
                 ul.ranking
             
-            section#lap_time.view.bg-record.d-none
+            section#lap_time.view.summary.d-none
                 h3.course_name 
                 h2.marker-lap_time ラップタイム
-                #lap_time_chart(style="display: grid; grid-auto-rows: 2ex 2.7rem; row-gap: 0.1rem;")
+                #lap_time_chart(style="display: grid; \
+                    grid-auto-rows: 2ex 2.7rem; \
+                    row-gap: 0.1rem;")
                 #lap_time_row.d-none
                     .name
                     .time_bar 
@@ -128,6 +130,54 @@ html(lang='ja')
                     .stack_bar.run
                         img(src='assets/icon/run.png')
                     .dummy
+                                
+            section#lap_score.view.summary.d-none
+                h3.course_name 
+                h2.marker-lap_time スコア
+                #lap_score_chart(style="display: grid; \
+                    grid-template-columns: auto auto 1px 1fr 1fr 1px 1fr 1fr; \
+                    grid-auto-rows: 0.7rem 1rem 1rem 1rem; \
+                    row-gap: 0;")
+                    #lap_score_footer_start
+                    .dummy 
+                    .bar.bar-end
+                    .dummy 
+                    .score-bg.score-bg-l.score-bg-b 
+                    .bar.bar-center.bar-end
+                    .score-bg.score-bg-r.score-bg-b 
+                    .dummy 
+                #lap_score_row.d-none
+                    .dummy 
+                    .dummy 
+                    .bar 
+                    .dummy 
+                    .score-bg.score-bg-l 
+                    .bar.bar-center 
+                    .score-bg.score-bg-r 
+                    .dummy
+
+                    .name
+
+                    .picto 
+                        img(src='assets/icon/swim.png')
+                    .swim.stack_bar 
+                    .score-bg.score-bg-l 
+                    .score-bg.score-bg-r 
+                    .dummy 
+                    
+                    .picto 
+                        img(src='assets/icon/bike.png')
+                    .bike.stack_bar 
+                    .score-bg.score-bg-l 
+                    .score-bg.score-bg-r 
+                    .dummy 
+                    
+                    .picto 
+                        img(src='assets/icon/run.png')
+                    .run.stack_bar 
+                    .score-bg.score-bg-l 
+                    .score-bg.score-bg-r 
+                    .dummy 
 
 
         // Footer

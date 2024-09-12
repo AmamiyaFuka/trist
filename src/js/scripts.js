@@ -155,6 +155,20 @@ const draw_all = () => {
 			root.parentElement.classList.add('d-none');
 		}
 	}
+
+
+	{
+		//ラップタイムスコア
+		const root = document.querySelector('#lap_score_chart');
+		const template = document.querySelector('#lap_score_row');
+		if (g.member_data.length > 0) {
+			draw_lap_score_summary(root, template);
+
+			root.parentElement.classList.remove('d-none');
+		} else {
+			root.parentElement.classList.add('d-none');
+		}
+	}
 };
 
 /**
@@ -171,7 +185,7 @@ const draw_lap_time_summary = (root, template) => {
 
 	g.member_data
 		.sort((a, b) => a.record_sec - b.record_sec)
-		.forEach((member, i) => {
+		.forEach(member => {
 			const row = template.cloneNode(true);
 
 			row.querySelector('.name').textContent = member.display_name;
@@ -214,6 +228,48 @@ const draw_lap_time_summary = (root, template) => {
 	const base_width = sub_laps.reduce((a, k) => Math.min(a, current_time[k]), base_time);
 	root.style.gridTemplateColumns = ['auto', ...sub_laps.map(k => (current_time[k] || base_time) / base_width + 'fr'), '0.5fr'].join(' 1px ');
 	// 出力例: auto 1px 1fr 1px 1.5fr 1px 1.3fr 1px 0.5fr;
+};
+
+
+/**
+ * ラップタイムサマリーテーブルを描画する
+ * @param {Element} root 描画要素を配置するルートエレメント
+ * @param {Element} template スタイル付けされた行要素
+ */
+const draw_lap_score_summary = (root, template) => {
+	// 初期化
+	const insert_position = root.querySelector('#lap_score_footer_start');
+	while (root.firstElementChild != insert_position) root.removeChild(root.firstElementChild);
+
+	g.member_data
+		.sort((a, b) => a.record_sec - b.record_sec)
+		.forEach((member, i) => {
+			const row = template.cloneNode(true);
+
+			row.querySelector('.name').textContent = member.display_name;
+			sub_laps.forEach(lap => {
+				if (!member.stats) return;
+				const v = member.stats[lap]?.score;
+				const elem = row.querySelector('.stack_bar.' + lap);
+				if (v) {
+					elem.textContent = Math.round(v);
+					// vが50の時、widthは200％
+					elem.style.width = Math.round(v * 4) + '%';
+				} else {
+					elem.textContent = '';
+					elem.style.color = 'rgba(0 0 0 0.7)';
+					elem.style.width = '200%';
+				}
+			});
+
+			// 最初の要素だけ角丸用のクラスを追加
+			if (i == 0) {
+				row.querySelector('.score-bg-l').classList.add('score-bg-t');
+				row.querySelector('.score-bg-r').classList.add('score-bg-t');
+			}
+
+			while (row.firstElementChild) root.insertBefore(row.firstElementChild, insert_position);
+		});
 };
 
 /**
@@ -318,12 +374,11 @@ const draw = (lap) => {
 
 	const accumulate = Array(time_max - time_min).fill(0)
 		.map((_, i) => time_min + i)
-		.map(x => {
-			return {
-				x,
-				y: stats.sorted_times.findIndex(t => t > x),
-			};
-		});
+		.map(x => ({
+			x,
+			y: stats.sorted_times.findIndex(t => t > x),
+		}))
+		.filter(d => d.y >= 0);
 
 	const data = {
 		datasets: [{
@@ -391,7 +446,7 @@ const draw = (lap) => {
 
 							const tips = [`${d.display_name} ${time}`, `${items.raw.y}位`];
 
-							const stats = d.stats;
+							const stats = d.stats[lap];
 
 							if (stats.valid) {
 								if (stats.percentile) tips.push(`上位${(stats.percentile * 100).toString().substring(0, 4)}%`);
@@ -476,16 +531,16 @@ const update_member_stats = (member, lap) => {
 	const data_stats = g[lap].stats;
 
 	if (!data_stats.valid) {
-		member.stats = { valid: false };
+		member.stats[lap] = { valid: false };
 		return;
 	}
 
-	member.stats = { valid: true };
+	member.stats[lap] = { valid: true };
 
 	const v = member[lap + '_sec'];
 	if (v) {
-		member.stats.score = (data_stats.average - v) / data_stats.stdev * 10 + 50;
-		member.stats.percentile = data_stats.sorted_times.findIndex(t => t > v) / data_stats.count;
+		member.stats[lap].score = (data_stats.average - v) / data_stats.stdev * 10 + 50;
+		member.stats[lap].percentile = data_stats.sorted_times.findIndex(t => t > v) / data_stats.count;
 	}
 };
 
