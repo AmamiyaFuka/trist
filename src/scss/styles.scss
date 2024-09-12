@@ -99,7 +99,7 @@ header {
 		padding: 0.2ex 0;
 		text-align: center;
 
-		word-break: auto-phrase;
+		word-break: keep-all;
 	}
 
 	#course_summary p {
@@ -282,6 +282,7 @@ section.view {
 	.picto {
 		text-align: end;
 		padding-inline-end: 0.5rem;
+		height: 100%;
 
 		img {
 			height: 90%;
