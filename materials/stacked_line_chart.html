@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="Visualize view for result of triathlon" />
+        <meta name="author" content="Fuka AMAMIYA" />
+        <title>レース名 :: Trist</title>
+        <!-- Favicon-->
+        <link rel="icon" type="image/webp" href="assets/favicon.ico" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" />
+        <link rel="stylesheet" href="css/styles.css" />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="js/scripts.js"></script>
+    </head>
+    <body style="background-image: url('assets/bg_body.png')">
+        <header style="background-image: url('assets/trist_logo.png')">
+            <h1 class="invisible">Trist</h1>
+            <div data-bs-toggle="modal" data-bs-target="#navi">
+                <svg class="touchable_icon" version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><use xlink:href="assets/icon/cog.svg#root"></use></svg>
+            </div>
+        </header>
+        <nav class="modal" id="navi">
+            <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="nav nav-pills nav-justified">
+                            <a class="nav-link active" data-bs-toggle="tab" data-bs-target="#race-tab">Race</a>
+                            <a class="nav-link" data-bs-toggle="tab" data-bs-target="#member-tab">Member</a>
+                            <a class="nav-link d-none" data-bs-toggle="tab" data-bs-target="#group-tab">Group</a>
+                        </div>
+                        <button class="btn-close" type="button" aria-label="Close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body tab-content">
+                        <div class="tab-pane fade show active" id="race-tab"><ul id="race_list"></ul></div>
+                        <div class="tab-pane fade" id="member-tab">
+                            <div class="d-flex">
+                                <h5 class="align-self-center me-3 mt-auto mb-auto">Add</h5>
+                                <label class="align-self-center flex-grow-1"><input class="w-100" id="new_member_input" placeholder="名前, ゼッケン番号" /></label>
+                            </div>
+                            <ul class="list-group mt-2" id="new_member_list"></ul>
+                            <h5>Members</h5>
+                            <ul class="list-group" id="member_list"></ul>
+                        </div>
+                        <div class="tab-pane fade d-none" id="group-tab"><p>Sectionの選択を切り替えるようにする</p></div>
+                    </div>
+                    <div class="modal-footer d-none">
+                        <p>
+                            SHARE by
+                            <i class="icon_in_text bi-link" id="copy_url"></i>
+                            <img class="icon_in_text" id="share_by_x" src="assets/icon/x-logo-black.png" />
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        <div class="debug">
+            <button id="redraw">再描画</button>
+            <div id="section_controller">
+                <p>
+                    <label><input id="section_all" type="checkbox" name="section_all" checked /></label>
+                </p>
+                <p><select id="section" multiple disabled></select></p>
+            </div>
+        </div>
+        <!-- Content section-->
+        <section id="course">
+            <h1 class="course_name"></h1>
+            <div id="course_summary"></div>
+        </section>
+        <div id="view">
+            
+            <section class="view">
+                <h3 class="course_name">富士トライアスロン2024</h3>
+                <h2 class="marker-record">スコア</h2>
+<div style="
+    display: grid;
+    grid-template-columns: auto 1px 1fr 1px 1.5fr 1px 1.3fr 1px 0.5fr;
+    grid-auto-rows: 2ex 2.7rem;
+    row-gap: 0.1rem;
+">
+<style>
+    div {
+        --record-color: hsl( 43deg 100% 45% / 0.5);
+        --swim-color  : hsl(198deg  69% 45% / 0.5);
+        --bike-color  : hsl(  0deg 100% 45% / 0.5);
+        --run-color   : hsl(134deg  48% 45% / 0.5);
+    }
+    .bar {
+        border-left: black solid 1px;
+        grid-row: span 2;
+    }
+    .name {
+        margin-right: 0.5em;
+        max-width: 7em;
+        word-break: auto-phrase;
+        align-self: center;
+        text-align: start;
+
+        grid-row: span 2;
+    }
+    img {
+        height: 1.3rem;
+    }
+    .stack_bar {
+        line-height: 2rem;
+        overflow: hidden;
+        text-indent: 1em;
+    }
+    .delta {
+        font-size: small;
+        text-align: end;
+    }
+    .swim {
+        color: var(--swim-color);
+        background: linear-gradient(transparent 1%, currentColor 1%, currentColor 100%);
+    }
+    .bike {
+        color: var(--bike-color);
+        background: linear-gradient(transparent 34%, currentColor 34%, currentColor 100%);
+    }
+    .run {
+        color: var(--run-color);
+        background: linear-gradient(transparent 67%, currentColor 67%, currentColor 100%);
+    }
+</style>
+<div class="name">井上 潤一</div><div class="bar"></div>
+<div class="delta">00:20:11</div><div class="bar"></div>
+<div class="delta">01:20:11</div><div class="bar"></div>
+<div class="delta">01:20:11</div><div class="bar"></div>
+<div></div>
+
+<div class="swim stack_bar"><img src="assets/icon/swim.png" /></div>
+<div class="bike stack_bar"><img  src="assets/icon/bike.png" /></div>
+<div class="run stack_bar"><img  src="assets/icon/run.png" /></div>
+<div></div>
+    
+<div class="name">大和田 昇</div><div class="bar"></div>
+<div class="delta">+120:11</div><div class="bar"></div>
+<div class="delta">-120:11</div><div class="bar"></div>
+<div class="delta">+120:11</div><div class="bar"></div>
+<div></div>
+
+<div class="swim stack_bar" style="width: 120%"><img src="assets/icon/swim.png" /></div>
+<div class="bike stack_bar" style="width: 90%"><img  src="assets/icon/bike.png" /></div>
+<div class="run stack_bar" style="width: 140%"><img  src="assets/icon/run.png" /></div>
+<div></div>
+    
+<div class="name">古畑 任三郎</div><div class="bar"></div>
+<div class="delta">+120:11</div><div class="bar"></div>
+<div class="delta">-120:11</div><div class="bar"></div>
+<div class="delta">+120:11</div><div class="bar"></div>
+<div></div>
+
+<div class="swim stack_bar" style="width: 90%"><img src="assets/icon/swim.png" /></div>
+<div class="bike stack_bar" style="width: 102%"><img  src="assets/icon/bike.png" /></div>
+<div class="run stack_bar" style="width: 85%"><img  src="assets/icon/run.png" /></div>
+<div></div>
+
+
+</div>
+            </section>
+
+
+            <section class="view">
+                <h3 class="course_name">富士トライアスロン2024</h3>
+                <h2 class="marker-record">ラップタイム</h2>
+<div style="
+    display: grid;
+    grid-template-columns: auto 1px 1fr 1px 1.5fr 1px 1.3fr 1px 0.5fr;
+    grid-auto-rows: 2ex 2.7rem;
+    row-gap: 0.1rem;
+">
+<style>
+    div {
+        --record-color: hsl( 43deg 100% 45% / 0.5);
+        --swim-color  : hsl(198deg  69% 45% / 0.5);
+        --bike-color  : hsl(  0deg 100% 45% / 0.5);
+        --run-color   : hsl(134deg  48% 45% / 0.5);
+    }
+    .bar {
+        border-left: black solid 1px;
+        grid-row: span 2;
+    }
+    .name {
+        margin-right: 0.5em;
+        max-width: 7em;
+        word-break: auto-phrase;
+        align-self: center;
+        text-align: start;
+
+        grid-row: span 2;
+    }
+    img {
+        height: 1.3rem;
+    }
+    .stack_bar {
+        line-height: 2rem;
+        overflow: hidden;
+        text-indent: 1em;
+    }
+    .delta {
+        font-size: small;
+        text-align: end;
+    }
+    .swim {
+        color: var(--swim-color);
+        background: linear-gradient(transparent 1%, currentColor 1%, currentColor 100%);
+    }
+    .bike {
+        color: var(--bike-color);
+        background: linear-gradient(transparent 34%, currentColor 34%, currentColor 100%);
+    }
+    .run {
+        color: var(--run-color);
+        background: linear-gradient(transparent 67%, currentColor 67%, currentColor 100%);
+    }
+</style>
+<div class="name">井上 潤一</div><div class="bar"></div>
+<div class="delta">00:20:11</div><div class="bar"></div>
+<div class="delta">01:20:11</div><div class="bar"></div>
+<div class="delta">01:20:11</div><div class="bar"></div>
+<div></div>
+
+<div class="swim stack_bar"><img src="assets/icon/swim.png" /></div>
+<div class="bike stack_bar"><img  src="assets/icon/bike.png" /></div>
+<div class="run stack_bar"><img  src="assets/icon/run.png" /></div>
+<div></div>
+    
+<div class="name">大和田 昇</div><div class="bar"></div>
+<div class="delta">+120:11</div><div class="bar"></div>
+<div class="delta">-120:11</div><div class="bar"></div>
+<div class="delta">+120:11</div><div class="bar"></div>
+<div></div>
+
+<div class="swim stack_bar" style="width: 120%"><img src="assets/icon/swim.png" /></div>
+<div class="bike stack_bar" style="width: 90%"><img  src="assets/icon/bike.png" /></div>
+<div class="run stack_bar" style="width: 140%"><img  src="assets/icon/run.png" /></div>
+<div></div>
+    
+<div class="name">古畑 任三郎</div><div class="bar"></div>
+<div class="delta">+120:11</div><div class="bar"></div>
+<div class="delta">-120:11</div><div class="bar"></div>
+<div class="delta">+120:11</div><div class="bar"></div>
+<div></div>
+
+<div class="swim stack_bar" style="width: 90%"><img src="assets/icon/swim.png" /></div>
+<div class="bike stack_bar" style="width: 102%"><img  src="assets/icon/bike.png" /></div>
+<div class="run stack_bar" style="width: 85%"><img  src="assets/icon/run.png" /></div>
+<div></div>
+
+
+</div>
+            </section>
+            <section class="view bg-record" id="view_record">
+                <h3 class="course_name"></h3>
+                <h2 class="marker-record">
+                    総合
+                    <span class="distance"></span>
+                </h2>
+                <div class="chart"><canvas></canvas></div>
+                <ul class="ranking"></ul>
+            </section>
+            <section class="view bg-swim" id="view_swim">
+                <h3 class="course_name"></h3>
+                <h2 class="marker-swim">
+                    スイム
+                    <img class="icon_in_text" src="assets/icon/swim.png" />
+                    <span class="distance"></span>
+                </h2>
+                <div class="chart"><canvas></canvas></div>
+                <ul class="ranking"></ul>
+            </section>
+            <section class="view bg-bike" id="view_bike">
+                <h3 class="course_name"></h3>
+                <h2 class="marker-bike">
+                    バイク
+                    <img class="icon_in_text" src="assets/icon/bike.png" />
+                    <span class="distance"></span>
+                </h2>
+                <div class="chart"><canvas></canvas></div>
+                <ul class="ranking"></ul>
+            </section>
+            <section class="view bg-run" id="view_run">
+                <h3 class="course_name"></h3>
+                <h2 class="marker-run">
+                    ラン
+                    <img class="icon_in_text" src="assets/icon/run.png" />
+                    <span class="distance"></span>
+                </h2>
+                <div class="chart"><canvas></canvas></div>
+                <ul class="ranking"></ul>
+            </section>
+        </div>
+        <!-- Footer-->
+        <footer class="py-3" style="background-color: hsl(240deg, 80%, 8%)">
+            <div class="container">
+                <p class="m-0 text-center text-white">
+                    <img class="img-fluid rounded-1 me-2 mb-2 fs-4 emoji" src="assets/rotate_umbllera_2024-04-25.webp" />
+                    Amamiya &copy; 2024
+                </p>
+            </div>
+        </footer>
+        <div class="icons d-none">
+            <div class="icons d-none">
+                <svg id="icon_user-plus" version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><use xlink:href="assets/icon/user-plus.svg#root"></use></svg><svg id="icon_user-minus" version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><use xlink:href="assets/icon/user-minus.svg#root"></use></svg><svg id="icon_cog" version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><use xlink:href="assets/icon/cog.svg#root"></use></svg>
+            </div>
+        </div>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+</html>
