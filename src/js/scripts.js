@@ -253,8 +253,8 @@ const draw_lap_score_summary = (root, template) => {
 				const elem = row.querySelector('.stack_bar.' + lap);
 				if (v) {
 					elem.textContent = Math.round(v);
-					// vが50の時、widthは200％
-					elem.style.width = Math.round(v * 4) + '%';
+					// 幅の計算方法は styles.scss を参照のこと
+					elem.style.width = Math.round(v * 20 / 7) + '%';
 				} else {
 					elem.textContent = '';
 					elem.style.color = 'rgba(0 0 0 0.7)';
