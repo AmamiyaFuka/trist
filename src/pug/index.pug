@@ -33,7 +33,7 @@ html(lang='ja')
                         .nav.nav-pills.nav-justified
                             a.nav-link.active(data-bs-toggle='tab' data-bs-target='#race-tab') Race
                             a.nav-link(data-bs-toggle='tab' data-bs-target='#member-tab') Member
-                            a.nav-link.d-none(data-bs-toggle='tab' data-bs-target='#group-tab') Group
+                            a.nav-link(data-bs-toggle='tab' data-bs-target='#group-tab') Group
                         button.btn-close(type='button' aria-label='Close' data-bs-dismiss='modal')
                     .modal-body.tab-content 
                         .tab-pane.fade.show.active#race-tab
@@ -47,8 +47,9 @@ html(lang='ja')
                             h5 Members
                             ul#member_list.list-group
 
-                        .tab-pane.fade.d-none#group-tab
-                            p Sectionの選択を切り替えるようにする
+                        .tab-pane.fade#group-tab
+                            p お試し
+                                select#group.form-select(multiple=true) 
                     .modal-footer.d-none 
                         p SHARE by
                             i#copy_url.icon_in_text.bi-link
@@ -56,14 +57,6 @@ html(lang='ja')
 
         .debug 
             button#redraw 再描画
-
-            #section_controller 
-                p
-                    label
-                        input#section_all(type="checkbox" name="section_all", checked=true)
-
-                p
-                    select#section(multiple=true, disabled=true)
 
         // Content section
         section#course
@@ -108,7 +101,7 @@ html(lang='ja')
             
             section#lap_time.view.summary.d-none
                 h3.course_name 
-                h2.marker-lap_time ラップタイム
+                h2.marker-lap_time タイム
                 #lap_time_chart(style="display: grid; \
                     grid-auto-rows: 2ex 2.7rem; \
                     row-gap: 0.1rem;")

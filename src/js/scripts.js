@@ -558,14 +558,13 @@ window.addEventListener('load', () => {
 	}
 
 	{
-		// Sectionフィルタ
-		const section_all = document.querySelector('#section_all');
-		const section = document.querySelector('#section');
+		// Groupフィルタ
+		const group = document.querySelector('#group');
 
 		const update_data_filter = () => {
-			if (section_all.checked) g.target = g.data;
+			if (group_all.checked) g.target = g.data;
 			else {
-				const values = Array.from(section.querySelectorAll('option')).filter(x => x.selected).map(x => x.value);
+				const values = Array.from(group.querySelectorAll('option')).filter(x => x.selected).map(x => x.value);
 				g.target = g.data.filter(k => values.includes(k.section));
 
 				updated_target_data();
@@ -574,13 +573,19 @@ window.addEventListener('load', () => {
 			draw_all();
 		};
 
-		section_all.addEventListener('change', () => {
-			section.disabled = section_all.checked;
+		group.addEventListener('change', () => {
+			if (group.firstElementChild.selected) {
+				g.target = g.data;
+			} else {
+				const values = Array.from(group.querySelectorAll('option')).filter(x => x.selected).map(x => x.value);
+				
+				if (values.length === 0) return;
+				g.target = g.data.filter(k => values.includes(k.section));
+			}
 
-			update_data_filter();
+			updated_target_data();
+			draw_all();
 		});
-
-		section.addEventListener('change', () => update_data_filter());
 	}
 
 	fetch(g.race_file)
@@ -618,13 +623,21 @@ window.addEventListener('load', () => {
 			return json.result;
 		})
 		.then(result => {
-			const sections = result.map(d => d.section).filter(x => x).filter((x, i, a) => a.indexOf(x) === i);
-			const s = document.querySelector('#section');
-			sections.forEach(k => {
+			const groups = result.map(d => d.section).filter(x => x).filter((x, i, a) => a.indexOf(x) === i);
+			const s = document.querySelector('#group');
+
+			{
+				const option = document.createElement('option');
+				option.value = 'all';
+				option.textContent = 'すべて';
+				option.selected = true;
+				s.appendChild(option);
+			}
+
+			groups.sort().forEach(k => {
 				const option = document.createElement('option');
 				option.value = k;
 				option.textContent = k;
-				option.selected = true;
 				s.appendChild(option);
 			});
 			s.setAttribute('size', s.childElementCount);

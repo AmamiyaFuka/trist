@@ -2,7 +2,7 @@
 @import "bootstrap/scss/bootstrap.scss";
 
 body {
-	font-family: "Century Gothic";
+	font-family: "Century Gothic", sans-serif;
 }
 
 img.emoji {
@@ -10,7 +10,6 @@ img.emoji {
 	width: 1em;
 	vertical-align: top;
 }
-
 
 .touchable_icon {
 	padding: 0.2rem;
