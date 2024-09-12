@@ -58,7 +58,7 @@ const g = {
 };
 
 const update_search_string = () => {
-	const race = g.race_file.match(/assets\/result\/(.*?)\.json/)[1];
+	const race = g.race_file.match(/\/?assets\/result\/(.*?)\.json/)[1];
 	window.history.replaceState(null, null, `?race=${race}&members=${g.member_data.map(x => x.number).join(',')}`);
 };
 
@@ -310,23 +310,18 @@ const draw = (lap) => {
 
 	const time_step_sec = 600;
 
-	const valid_sec = g.target.map(x => x[key_sec]).filter(x => x);
+	const stats = g[lap].stats;
+	if (!stats.valid) return;
 
-	if (valid_sec.length < 2) return;
-
-	const time_min = Math.floor(Math.min(...valid_sec) / time_step_sec) * time_step_sec;
-	const time_max = Math.ceil(Math.max(...valid_sec) / time_step_sec) * time_step_sec;
-
-	const average = valid_sec.reduce((a, b) => a + b / valid_sec.length, 0);
-	const variance = valid_sec.reduce((a, b) => a + Math.pow(b - average, 2) / valid_sec.length, 0);
-	const stdev = Math.sqrt(variance);
+	const time_min = Math.floor(stats.time.min / time_step_sec) * time_step_sec;
+	const time_max = Math.ceil(stats.time.max / time_step_sec) * time_step_sec;
 
 	const accumulate = Array(time_max - time_min).fill(0)
 		.map((_, i) => time_min + i)
 		.map(x => {
 			return {
 				x,
-				y: valid_sec.filter(t => t < x).length,
+				y: stats.sorted_times.findIndex(t => t > x),
 			};
 		});
 
@@ -347,11 +342,14 @@ const draw = (lap) => {
 				label: d.display_name,
 				data: [{
 					x, y: accumulate.find(n => n.x === x)?.y,
+
+					// Chart.jsからみたら不要なデータ
+					// Tooltipの表示に利用
 					tag: d,
-					score: (x - average) / stdev * 10 + 50
 				}],
 				order: i + 1,
 				pointRadius: 8,
+				pointHitRadius: 3,
 				backgroundColor: d.color,
 			};
 		})],
@@ -390,7 +388,17 @@ const draw = (lap) => {
 						label: (items) => {
 							const d = items.raw.tag;
 							const time = sec_to_hhmmss(d[lap + '_sec']);
-							return `${d.display_name} ${time}, ${items.raw.y}位, 上位${(items.raw.y / g.target.length * 100).toString().substring(0, 4)}%, スコア ${items.raw.score.toString().substring(0, 2)}`
+
+							const tips = [`${d.display_name} ${time}`, `${items.raw.y}位`];
+
+							const stats = d.stats;
+
+							if (stats.valid) {
+								if (stats.percentile) tips.push(`上位${(stats.percentile * 100).toString().substring(0, 4)}%`);
+								if (stats.score) tips.push(`スコア ${stats.score.toString().substring(0, 2)}`);
+							}
+
+							return tips.join(', ');
 						},
 					}
 				},
@@ -406,10 +414,84 @@ const draw = (lap) => {
 };
 
 /**
+ * 
+ */
+const updated_target_data = () => {
+	laps.forEach(lap => {
+		const k = lap + '_sec';
+
+		const sorted_times = g.target.map(x => x[k]).filter(x => x).sort((a, b) => a - b);
+
+		if (sorted_times.length < 2) {
+			g[lap].stats = { valid: false };
+			return;
+		}
+
+		const min = sorted_times[0];
+		const max = sorted_times[sorted_times.length - 1];
+
+		// 平均
+		const average = sorted_times.reduce((a, b) => a + b / sorted_times.length, 0);
+		// 分散
+		const variance = sorted_times.reduce((a, b) => a + Math.pow(b - average, 2) / sorted_times.length, 0);
+		// 標準偏差
+		const stdev = Math.sqrt(variance);
+
+		g[lap].stats = {
+			valid: true,
+			count: sorted_times.length,
+			sorted_times,
+			time: { min, max },
+			average,
+			variance,
+			stdev,
+		};
+	});
+
+	update_all_member_stats();
+};
+
+/**
  * メンバーリストが変更されたイベントを発行する
  * メンバーリスト要素の再構築が期待される
  */
-const update_member_list = () => document.querySelector('#member_list').dispatchEvent(new Event('member_list_update'));
+const updated_member_list = () => {
+	document.querySelector('#member_list').dispatchEvent(new Event('member_list_update'));
+
+	// 色指定が無かったら追加する
+	g.member_data.forEach(member => {
+		member.color ??= color_pallets.new();
+		laps.forEach(lap => update_member_stats(member, lap));
+	});
+};
+
+/**
+ * メンバーの統計データを再計算する
+ * @param {PersonResult} member 
+ * @param {'record' | 'swim' | 'bike' | 'run'} lap 
+ */
+const update_member_stats = (member, lap) => {
+	if (!('stats' in member)) member.stats = {};
+
+	const data_stats = g[lap].stats;
+
+	if (!data_stats.valid) {
+		member.stats = { valid: false };
+		return;
+	}
+
+	member.stats = { valid: true };
+
+	const v = member[lap + '_sec'];
+	if (v) {
+		member.stats.score = (data_stats.average - v) / data_stats.stdev * 10 + 50;
+		member.stats.percentile = data_stats.sorted_times.findIndex(t => t > v) / data_stats.count;
+	}
+};
+
+const update_all_member_stats = () => {
+	g.member_data.forEach(member => laps.forEach(lap => update_member_stats(member, lap)));
+};
 
 window.addEventListener('load', () => {
 	laps.forEach(lap => g[lap].context = document.querySelector(`#view_${lap} canvas`))
@@ -430,6 +512,8 @@ window.addEventListener('load', () => {
 			else {
 				const values = Array.from(section.querySelectorAll('option')).filter(x => x.selected).map(x => x.value);
 				g.target = g.data.filter(k => values.includes(k.section));
+
+				updated_target_data();
 			}
 
 			draw_all();
@@ -449,6 +533,8 @@ window.addEventListener('load', () => {
 		.then(json => {
 			g.course = json.course;
 			g.target = g.data = json.result;
+			updated_target_data();
+
 			Array.from(document.querySelectorAll('.course_name')).forEach(elem => elem.textContent = g.course.name);
 
 			['swim', 'bike', 'run'].forEach(x => document.querySelector(`#view_${x} .distance`).textContent = g.course.distance[x] + ' km');
@@ -472,11 +558,7 @@ window.addEventListener('load', () => {
 
 			g.member_data = g.data.filter(x => g.member_ids.includes(x.number));
 			delete g.member_ids;
-
-			g.member_data.forEach((x, i) => {
-				if (!x.color) x.color = color_pallets.new();
-			});
-			update_member_list();
+			updated_member_list();
 
 			return json.result;
 		})
@@ -497,7 +579,7 @@ window.addEventListener('load', () => {
 		.then(() => draw_all());
 
 	//レースリスト
-	fetch('./assets/list.json')
+	fetch('assets/list.json')
 		.then(res => res.json())
 		.then(json => {
 			const ul = document.querySelector('#race_list');
@@ -564,7 +646,7 @@ window.addEventListener('load', () => {
 
 					ul.removeChild(elem);
 
-					update_member_list();
+					updated_member_list();
 				}, { once: true });
 
 				const icon = generate_svg_icon_element('user-plus');
@@ -606,7 +688,7 @@ window.addEventListener('load', () => {
 
 				button.addEventListener('click', () => {
 					g.member_data = g.member_data.filter(m => m.number !== x.object.number);
-					update_member_list();
+					updated_member_list();
 				}, { once: true });
 
 				const icon = generate_svg_icon_element('user-minus');
