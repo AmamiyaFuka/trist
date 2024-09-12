@@ -670,7 +670,7 @@ window.addEventListener('load', () => {
 
 		g.data
 			.filter(x => x.number === v || x.display_name.includes(v))
-			// 追加済みメンバーとの重複チェックをここにいれる
+			// ToDo: 追加済みメンバーとの重複チェックをここにいれる
 			.map(x => {
 				return {
 					tag: 'li',
@@ -702,6 +702,7 @@ window.addEventListener('load', () => {
 					ul.removeChild(elem);
 
 					updated_member_list();
+					draw_all();
 				}, { once: true });
 
 				const icon = generate_svg_icon_element('user-plus');
