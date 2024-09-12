@@ -25,6 +25,7 @@ class ColorPallets {
 const color_pallets = new ColorPallets();
 
 const laps = ['record', 'swim', 'bike', 'run'];
+const sub_laps = ['swim', 'bike', 'run'];
 
 /**
  * 
@@ -141,6 +142,78 @@ const draw_all = () => {
 		draw(x);
 		draw_member_ranking(x);
 	});
+
+	{
+		//ラップタイムサマリー
+		const root = document.querySelector('#lap_time_chart');
+		const template = document.querySelector('#lap_time_row');
+		if (g.member_data.length > 0) {
+			draw_lap_time_summary(root, template);
+
+			root.parentElement.classList.remove('d-none');
+		} else {
+			root.parentElement.classList.add('d-none');
+		}
+	}
+};
+
+/**
+ * ラップタイムサマリーテーブルを描画する
+ * @param {Element} root 描画要素を配置するルートエレメント
+ * @param {Element} template スタイル付けされた行要素
+ */
+const draw_lap_time_summary = (root, template) => {
+	// 初期化
+	root.textContent = '';
+
+	// 比較値
+	const current_time = {};
+
+	g.member_data
+		.sort((a, b) => a.record_sec - b.record_sec)
+		.forEach((member, i) => {
+			const row = template.cloneNode(true);
+
+			row.querySelector('.name').textContent = member.display_name;
+			sub_laps.forEach(k => {
+				const v = member[k + '_sec'];
+
+				// 比較値が含まれている場合は、差分表示。いない場合は絶対値表示
+				const time = current_time[k] ? sec_to_mss_with_sign(v - current_time[k]) : sec_to_hhmmss(v);
+				// 比較値が含まれていない場合はセットする
+				current_time[k] ||= v;
+
+				if (v) {
+					row.querySelector('.time.' + k).textContent = time;
+					row.querySelector('.stack_bar.' + k).style.width = Math.round(v * 100 / current_time[k]) + '%';
+				} else {
+					row.querySelector('.stack_bar.' + k).style.color = 'gray';
+				}
+			});
+
+			while (row.firstElementChild) root.appendChild(row.firstElementChild);
+		});
+
+
+
+	// データ欠落時の代替タイム
+	const base_time = ((() => {
+		let sum = 0;
+		let count = 0;
+		g.member_data.forEach(x => {
+			sub_laps.map(k => k + '_sec')
+				.filter(k => x[k])
+				.forEach(k => {
+					sum += x[k];
+					count++;
+				});
+		})
+		return sum / count;
+	}))();
+	// current_time のうち一番小さい数値（または代替タイム）を 1fr にする
+	const base_width = sub_laps.reduce((a, k) => Math.min(a, current_time[k]), base_time);
+	root.style.gridTemplateColumns = ['auto', ...sub_laps.map(k => (current_time[k] || base_time) / base_width + 'fr'), '0.5fr'].join(' 1px ');
+	// 出力例: auto 1px 1fr 1px 1.5fr 1px 1.3fr 1px 0.5fr;
 };
 
 /**

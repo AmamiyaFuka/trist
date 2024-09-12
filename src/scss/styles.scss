@@ -35,10 +35,10 @@ img.emoji {
 }
 
 :root {
-	--record-color: hsl( 43deg 100% 45% / 0.5);
-	--swim-color  : hsl(198deg  69% 45% / 0.5);
-	--bike-color  : hsl(  0deg 100% 45% / 0.5);
-	--run-color   : hsl(134deg  48% 45% / 0.5);
+	--record-color: hsl(43deg 100% 45% / 0.5);
+	--swim-color: hsl(198deg 69% 45% / 0.5);
+	--bike-color: hsl(0deg 100% 45% / 0.5);
+	--run-color: hsl(134deg 48% 45% / 0.5);
 }
 
 .marker-record {
@@ -93,7 +93,7 @@ header {
 	h1 {
 		padding: 0.2ex 0;
 		text-align: center;
-		
+
 		word-break: auto-phrase;
 	}
 
@@ -188,36 +188,49 @@ section.view {
 	display: none;
 }
 
-#compare_table {
-	display: none;
-}
-
-#compare_record {
-	td {
-		text-align: right;
+#lap_time_chart {
+	.time_bar {
+		border-left: black solid 1px;
+		grid-row: span 2;
 	}
 
-	.positive {
-		color: black;
+	.name {
+		margin-right: 0.5em;
+		max-width: 7em;
+		word-break: auto-phrase;
+		align-self: center;
+		text-align: start;
+
+		grid-row: span 2;
 	}
 
-	.positive::before {
-		content: '+';
+	.stack_bar {
+		line-height: 2rem;
+		text-indent: 1em;
+
+		img {
+			height: 1.3rem;
+		}
+
+		&.swim {
+			color: var(--swim-color);
+			background: linear-gradient(transparent 1%, currentColor 1%, currentColor 100%);
+		}
+
+		&.bike {
+			color: var(--bike-color);
+			background: linear-gradient(transparent 34%, currentColor 34%, currentColor 100%);
+		}
+
+		&.run {
+			color: var(--run-color);
+			background: linear-gradient(transparent 67%, currentColor 67%, currentColor 100%);
+		}
 	}
 
-	.negative {
-		color: red;
-	}
-
-	.negative::before {
-		content: '-';
-	}
-
-	.zero {
-		color: gray;
-	}
-
-	.zero::before {
-		content: '±';
+	.time {
+		font-size: small;
+		text-align: end;
+		padding-inline-end: 0.1rem;
 	}
 }

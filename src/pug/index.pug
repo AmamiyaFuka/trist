@@ -104,7 +104,31 @@ html(lang='ja')
                     span.distance
                 .chart
                     canvas
-                ul.ranking 
+                ul.ranking
+            
+            section#lap_time.view.bg-record.d-none
+                h3.course_name 
+                h2.marker-lap_time ラップタイム
+                #lap_time_chart(style="display: grid; grid-auto-rows: 2ex 2.7rem; row-gap: 0.1rem;")
+                #lap_time_row.d-none
+                    .name
+                    .time_bar 
+                    .time.swim 
+                    .time_bar 
+                    .time.bike
+                    .time_bar
+                    .time.run
+                    .time_bar
+                    .dummy 
+
+                    .stack_bar.swim
+                        img(src='assets/icon/swim.png')
+                    .stack_bar.bike
+                        img(src='assets/icon/bike.png')
+                    .stack_bar.run
+                        img(src='assets/icon/run.png')
+                    .dummy
+
 
         // Footer
         footer.py-3(style="background-color: hsl(240deg, 80%, 8%);")
