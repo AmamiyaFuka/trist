@@ -20,10 +20,10 @@ export default class {
 			},
 			display_name: {
 				key_name: 'col_' + (cols.findIndex(col => col.result_col_caption === '氏名') + 1),
-				converter: value => value,
+				converter: value => value.replaceAll('　', ' '),
 			},
 			section: {
-				key_name: 'col_' + (cols.findIndex(col => col.result_col_caption === '区分') + 1),
+				key_name: 'col_' + (cols.findIndex(col => ['区分', '年齢区分', '年齢\n区分'].includes(col.result_col_caption)) + 1),
 				converter: value => value,
 			},
 			record_sec: {
@@ -31,15 +31,15 @@ export default class {
 				converter: hmmss_to_number,
 			},
 			swim_sec: {
-				key_name: 'col_' + (cols.findIndex(col => col.result_col_caption === 'ｽｲﾑﾗｯﾌﾟ') + 1),
+				key_name: 'col_' + (cols.findIndex(col => ['ｽｲﾑﾗｯﾌﾟ', 'SWIM', 'スイム'].includes(col.result_col_caption)) + 1),
 				converter: hmmss_to_number,
 			},
 			bike_sec: {
-				key_name: 'col_' + (cols.findIndex(col => col.result_col_caption === 'ﾊﾞｲｸﾗｯﾌﾟ') + 1),
+				key_name: 'col_' + (cols.findIndex(col => ['ﾊﾞｲｸﾗｯﾌﾟ', 'BIKE', 'バイク'].includes(col.result_col_caption)) + 1),
 				converter: hmmss_to_number,
 			},
 			run_sec: {
-				key_name: 'col_' + (cols.findIndex(col => col.result_col_caption === 'ﾗﾝﾗｯﾌﾟ') + 1),
+				key_name: 'col_' + (cols.findIndex(col => ['ﾗﾝﾗｯﾌﾟ', 'RUN', 'ラン'].includes(col.result_col_caption)) + 1),
 				converter: hmmss_to_number,
 			},
 		};

@@ -12,6 +12,7 @@ interface PersonResult {
 
 interface Course {
 	name: string;
+	short_name: string;
 	starttime: number;
 	weather: string;
 	distance: {

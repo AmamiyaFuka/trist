@@ -374,11 +374,10 @@ const draw = (lap) => {
 
 	const accumulate = Array(time_max - time_min).fill(0)
 		.map((_, i) => time_min + i)
-		.map(x => ({
-			x,
-			y: stats.sorted_times.findIndex(t => t > x),
-		}))
-		.filter(d => d.y >= 0);
+		.map(x => {
+			const y = stats.sorted_times.findIndex(t => t > x);
+			return { x, y: y > 0 ? y : undefined };
+		});
 
 	const data = {
 		datasets: [{
@@ -425,16 +424,27 @@ const draw = (lap) => {
 						autoSkip: true,
 						stepSize: 600,
 					},
+					title: {
+						display: true,
+						text: 'Finish',
+					},
 				},
 				y: {
 					type: 'linear',
 					position: 'left',
-					min: 0,
-					max: g.target.length + 1,
+					min: -50,
+					max: g.target.length + 50,
 					reverse: true,
 					ticks: {
-						stepSize: 10,
+						includesBounds: true,
+						callback: value => {
+							if (value < 0) return '';
+							if (value % 10 !== 0) return '';
+							return (value + 1) + 'st';
+						},
+						stepSize: 100,
 					},
+					beginAtZero: true,
 				}
 			},
 			plugins: {
@@ -578,7 +588,7 @@ window.addEventListener('load', () => {
 				g.target = g.data;
 			} else {
 				const values = Array.from(group.querySelectorAll('option')).filter(x => x.selected).map(x => x.value);
-				
+
 				if (values.length === 0) return;
 				g.target = g.data.filter(k => values.includes(k.section));
 			}
