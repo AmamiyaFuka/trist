@@ -6,7 +6,7 @@ module.exports = function generateListFile() {
 	const dst_file = upath.resolve(upath.dirname(__filename), '../src/assets', 'list.json');
 
 	const list = [];
-	fs.readdirSync(data_path, {withFileTypes: true}).forEach(dirent => {
+	fs.readdirSync(data_path, { withFileTypes: true }).forEach(dirent => {
 		if (!dirent.isFile()) return;
 		if (!dirent.name.endsWith('.json')) return;
 
@@ -17,6 +17,14 @@ module.exports = function generateListFile() {
 			label: course.short_name,
 			course,
 		});
+	});
+
+	list.sort((a, b) => {
+		const dt = b.course.starttime - a.course.starttime;
+		if (dt !== 0) return dt;
+
+		return a.course.short_name < b.course.short_name ? 1 :
+			a.course.short_name > b.course.short_name ? -1 : 0;
 	});
 
 	fs.writeFileSync(dst_file, JSON.stringify(list));
