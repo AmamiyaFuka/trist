@@ -16,6 +16,12 @@ class ColorPallets {
 		return this.pallets[this.index = (this.index + 1) % this.pallets.length];
 	};
 
+	get_array(length) {
+		const n = Math.floor(length / this.pallets.length) + 1;
+		const p = this.pallets.length * n - length;
+		return Array(n).fill(this.pallets).flat().slice(0, -p);
+	}
+
 	swim(alpha) { return `hsla(198, 82%, 75%, ${alpha ?? '0'})`; };
 	bike(alpha) { return `hsla(0, 69%, 100%, ${alpha ?? '0'})`; };
 	run(alpha) { return `hsla(134, 46%, 80%, ${alpha ?? '0'})`; };
@@ -388,7 +394,7 @@ const draw = (lap) => {
 			order: 1000,
 		}, ({
 			showLine: false,
-			data: g.member_data.map((d, i) => {
+			data: g.member_data.map(d => {
 				return Object.fromEntries([
 					['tag',d],
 					...laps.map(lap => {
@@ -401,7 +407,7 @@ const draw = (lap) => {
 			order: 1,
 			pointRadius: 8,
 			pointHitRadius: 3,
-			backgroundColor: g.member_data.map(d => d.color),
+			backgroundColor: color_pallets.get_array(g.member_data.length),
 		})],
 	};
 
