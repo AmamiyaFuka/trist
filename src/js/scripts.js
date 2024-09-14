@@ -543,10 +543,12 @@ const update_target_data = target => {
 		.map((_, i) => time_min + i)
 		.map(x => ({
 			x,
-			...Object.fromEntries(laps.map(lap => {
-				const v = g[lap].stats.sorted_times.findIndex(t => t > x);
-				return [lap, v > 0 ? v : undefined];
-			})),
+			...Object.fromEntries(laps
+				.filter(lap => g[lap].stats.valid)
+				.map(lap => {
+					const v = g[lap].stats.sorted_times.findIndex(t => t > x);
+					return [lap, v > 0 ? v : undefined];
+				})),
 		}));
 
 	update_all_member_stats();
