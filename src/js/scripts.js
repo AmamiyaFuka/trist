@@ -1,26 +1,27 @@
 class ColorPallets {
-	constructor() {
-		this.pallets = [
-			'#36a2eb',
-			'#ff6384',
-			'#4bc0c0',
-			'#ff9f40',
-			'#9966ff',
-			'#ffcd56',
-			'#c9cbcf',
-		];
-		this.index = 0;
-	};
+	#pallets = [
+		'#36a2eb',
+		'#ff6384',
+		'#4bc0c0',
+		'#ff9f40',
+		'#9966ff',
+		'#ffcd56',
+		'#c9cbcf',
+	];
+	#index = 0;
+	constructor() { };
 
 	new() {
-		return this.pallets[this.index = (this.index + 1) % this.pallets.length];
+		return this.#pallets[this.#index = (this.#index + 1) % this.#pallets.length];
 	};
 
-	get_array(length) {
-		const n = Math.floor(length / this.pallets.length) + 1;
-		const p = this.pallets.length * n - length;
-		return Array(n).fill(this.pallets).flat().slice(0, -p);
-	}
+	all() {
+		return this.#pallets;
+	};
+
+	indexOf(i) {
+		return this.#pallets[i % this.#pallets.length];
+	};
 
 	swim(alpha) { return `hsla(198, 82%, 75%, ${alpha ?? '0'})`; };
 	bike(alpha) { return `hsla(0, 69%, 100%, ${alpha ?? '0'})`; };
@@ -336,10 +337,8 @@ const draw_member_ranking = (lap) => {
 	let front = null;
 	const parent = document.querySelector(`#view_${lap} ul.ranking`);
 
-	const colors = color_pallets.get_array(g.member_data.length);
-
 	g.member_data
-		.map((x, i) => ({ color: colors[i], display: x.display_name, time: x[lap + '_sec'] }))
+		.map((x, i) => ({ color: color_pallets.indexOf(i), display: x.display_name, time: x[lap + '_sec'] }))
 		.sort((a, b) => a.time - b.time)
 		.map(x => {
 			const d = x.time - front;
@@ -408,7 +407,7 @@ const draw = (lap) => {
 			order: 1,
 			pointRadius: 8,
 			pointHitRadius: 3,
-			backgroundColor: color_pallets.get_array(g.member_data.length),
+			backgroundColor: color_pallets.all(),
 		})],
 	};
 
@@ -437,7 +436,6 @@ const draw = (lap) => {
 					type: 'linear',
 					position: 'left',
 					min: -50,
-					max: g.target.length + 50,
 					reverse: true,
 					ticks: {
 						includesBounds: true,
@@ -491,12 +489,15 @@ const draw = (lap) => {
 
 /**
  * 
+ * @param {Array<PersonResult} target 
  */
-const updated_target_data = () => {
+const update_target_data = target => {
+	g.target = target; // この代入は不要だがデバッグ用にまだおいとく
+
 	laps.forEach(lap => {
 		const k = lap + '_sec';
 
-		const sorted_times = g.target.map(x => x[k]).filter(x => x).sort((a, b) => a - b);
+		const sorted_times = target.map(x => x[k]).filter(x => x).sort((a, b) => a - b);
 
 		if (sorted_times.length < 2) {
 			g[lap].stats = { valid: false };
@@ -539,6 +540,8 @@ const updated_target_data = () => {
 		}));
 
 	update_all_member_stats();
+
+	g.member_chart_data = g.member_data.map(d => generate_member_chart_data(d));
 };
 
 /**
@@ -599,15 +602,13 @@ window.addEventListener('load', () => {
 
 		group.addEventListener('change', () => {
 			if (group.firstElementChild.selected) {
-				g.target = g.data;
+				update_target_data(g.data);
 			} else {
 				const values = Array.from(group.querySelectorAll('option')).filter(x => x.selected).map(x => x.value);
 
 				if (values.length === 0) return;
-				g.target = g.data.filter(k => values.includes(k.section));
+				update_target_data(g.data.filter(k => values.includes(k.section)));
 			}
-
-			updated_target_data();
 			draw_all();
 		});
 	}
@@ -677,14 +678,12 @@ window.addEventListener('load', () => {
 		.then(res => res.json())
 		.then(json => {
 			g.course = json.course;
-			g.target = g.data = json.result;
+			g.data = json.result;
 
 			g.member_data = g.data.filter(x => g.member_ids.includes(x.number));
 			delete g.member_ids;
 
-			updated_target_data();
-
-			g.member_chart_data = g.member_data.map(d => generate_member_chart_data(d));
+			update_target_data(g.data);
 
 			// 初期メンバーリスト要素を作る
 			g.member_data.map(d => generate_member_list_element(d, 'remove'))
