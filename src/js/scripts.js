@@ -329,8 +329,10 @@ const draw_member_ranking = (lap) => {
 	let front = null;
 	const parent = document.querySelector(`#view_${lap} ul.ranking`);
 
+	const colors = color_pallets.get_array(g.member_data.length);
+
 	g.member_data
-		.map(x => ({ color: x.color, display: x.display_name, time: x[lap + '_sec'] }))
+		.map((x, i) => ({ color: colors[i], display: x.display_name, time: x[lap + '_sec'] }))
 		.sort((a, b) => a.time - b.time)
 		.map(x => {
 			const d = x.time - front;
@@ -394,15 +396,7 @@ const draw = (lap) => {
 			order: 1000,
 		}, ({
 			showLine: false,
-			data: g.member_data.map(d => {
-				return Object.fromEntries([
-					['tag', d],
-					...laps.map(lap => {
-						const lap_x = d[lap + '_sec'];
-						const lap_y = g.chart_data[lap_x - g.chart_data[0]?.x]?.[lap];
-						return [lap, { x: lap_x, y: lap_y }];
-					})]);
-			}),
+			data: g.member_chart_data,
 			parsing: { xAxisKey: lap + '.x', yAxisKey: lap + '.y' },
 			order: 1,
 			pointRadius: 8,
@@ -549,8 +543,17 @@ const updated_member_list = () => {
 
 	// 色指定が無かったら追加する
 	g.member_data.forEach(member => {
-		member.color ??= color_pallets.new();
 		laps.forEach(lap => update_member_stats(member, lap));
+	});
+
+	g.member_chart_data = g.member_data.map(d => {
+		return Object.fromEntries([
+			['tag', d],
+			...laps.map(lap => {
+				const lap_x = d[lap + '_sec'];
+				const lap_y = g.chart_data[lap_x - g.chart_data[0]?.x]?.[lap];
+				return [lap, { x: lap_x, y: lap_y }];
+			})]);
 	});
 };
 
@@ -594,18 +597,6 @@ window.addEventListener('load', () => {
 	{
 		// Groupフィルタ
 		const group = document.querySelector('#group');
-
-		const update_data_filter = () => {
-			if (group_all.checked) g.target = g.data;
-			else {
-				const values = Array.from(group.querySelectorAll('option')).filter(x => x.selected).map(x => x.value);
-				g.target = g.data.filter(k => values.includes(k.section));
-
-				updated_target_data();
-			}
-
-			draw_all();
-		};
 
 		group.addEventListener('change', () => {
 			if (group.firstElementChild.selected) {
@@ -743,7 +734,6 @@ window.addEventListener('load', () => {
 				const button = elem.querySelector('button');
 
 				button.addEventListener('click', () => {
-					if (!x.object.color) x.object.color = color_pallets.new();
 					g.member_data.push(x.object);
 
 					ul.removeChild(elem);
@@ -785,13 +775,16 @@ window.addEventListener('load', () => {
 				}],
 
 			}))
-			.map(x => {
+			.map((x, i) => {
 				const elem = generate_element(x);
 				const button = elem.querySelector('button');
 
 				button.addEventListener('click', () => {
-					g.member_data = g.member_data.filter(m => m.number !== x.object.number);
-					updated_member_list();
+					g.member_data.splice(i, 1);
+					g.member_chart_data.splice(i, 1);
+					ul.removeChild(elem);
+
+					laps.forEach(lap => g[lap].chart.update());
 				}, { once: true });
 
 				const icon = generate_svg_icon_element('user-minus');
