@@ -16,6 +16,7 @@ html(lang='ja')
         link(rel='stylesheet' href='css/styles.css')
 
         script(src='https://cdn.jsdelivr.net/npm/chart.js')
+        script(src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js')
         script(src='js/scripts.js')
 
 
@@ -178,6 +179,16 @@ html(lang='ja')
                     .score-bg.score-bg-r 
                     .dummy 
 
+        section#share-list 
+            ul.share-container
+                li.share-item Share by
+                li#share-link.share-item.btn
+                    img(src='assets/icon/link.png')
+                li#share-qr.share-item.btn
+                    img(src='assets/icon/qrcode.png')
+                li#share-x.share-item.btn
+                    a#share-x-link
+                        img(src='assets/icon/x-logo-black.png')
 
         // Footer
         footer.py-3(style="background-color: hsl(240deg, 80%, 8%);")
@@ -185,6 +196,19 @@ html(lang='ja')
                 p.m-0.text-center.text-white
                     img.img-fluid.rounded-1.me-2.mb-2.fs-4.emoji(src='assets/rotate_umbllera_2024-04-25.webp')
                     | Amamiya &copy; 2024
+
+        // Toast
+        .toast-container.position-fixed.bottom-0.end-0.pe-3
+            #hide_toast.toast.alert.p-0(data-bs-autohide='true')
+                .toast-header 
+                    strong.toast-message.me-auto Hello, world 
+                    button.btn-close(data-bs-dismiss='toast')
+                .toast-body.d-none
+            #no_hide_toast.toast.alert.p-0(data-bs-autohide='false')
+                .toast-header 
+                    strong.toast-message.me-auto Hello, world 
+                    button.btn-close(data-bs-dismiss='toast')
+                .toast-body
         
         .icons.d-none
             //- 利用するSVGアイコンすべて読み込んでおく

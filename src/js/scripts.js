@@ -67,6 +67,9 @@ const g = {
 const update_search_string = () => {
 	const race = g.race_file.match(/\/?assets\/result\/(.*?)\.json/)[1];
 	window.history.replaceState(null, null, `?race=${race}&members=${g.member_data.map(x => x.number).join(',')}`);
+
+	// Xシェアリンクを更新
+	document.querySelector('#share-x-link').setAttribute('href', `https://x.com/intent/tweet?text=${encodeURIComponent(g.course.name + 'のリザルト')}&url=${encodeURIComponent(window.location.href)}`);
 };
 
 
@@ -724,6 +727,10 @@ window.addEventListener('load', () => {
 				})
 			}
 
+			document.querySelector('#share-x-link')
+				.setAttribute('href', `https://x.com/intent/tweet?text=${encodeURIComponent(g.course.name + 'のリザルト')}&url=${encodeURIComponent(window.location.href)}`);
+
+
 			return json.result;
 		})
 		.then(result => {
@@ -788,6 +795,38 @@ window.addEventListener('load', () => {
 			// ToDo: 追加済みメンバーとの重複チェックをここにいれる
 			.map(x => generate_member_list_element(x, 'add'))
 			.forEach(x => new_member_list_element.appendChild(x));
+	});
+
+	// Share機能
+	const hide_toast = document.querySelector('#hide_toast');
+	const no_hide_toast = document.querySelector('#no_hide_toast');
+	document.querySelector('#share-link').addEventListener('click', () => {
+		navigator.permissions.query({ name: "clipboard-write" })
+			.then((result) => {
+				if (result.state === "granted" || result.state === "prompt") {
+					return navigator.clipboard.writeText(window.location.href);
+					/* write to the clipboard now */
+				}
+				throw 'permission request failed.';
+			})
+			.then(() => 'URLをコピーしました')
+			.catch(() => 'URLのコピーに失敗しました')
+			.then(message => {
+				hide_toast.querySelector('.toast-message').textContent = message;
+				hide_toast_bootstrap.show();
+			});
+
+	});
+
+	const hide_toast_bootstrap = bootstrap.Toast.getOrCreateInstance(hide_toast);
+	const no_hide_toast_bootstrap = bootstrap.Toast.getOrCreateInstance(no_hide_toast);
+	document.querySelector('#share-qr').addEventListener('click', () => {
+		no_hide_toast.querySelector('.toast-message').textContent = document.title;
+
+		no_hide_toast.querySelector('.toast-body').textContent = '';
+		new QRCode(no_hide_toast.querySelector('.toast-body'), window.location.href);
+
+		no_hide_toast_bootstrap.show();
 	});
 }, { once: true });
 

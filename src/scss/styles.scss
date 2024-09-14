@@ -406,3 +406,40 @@ section.view {
 		}
 	}
 }
+
+#share-list {
+	font-size: 1.5rem;
+	margin: 0;
+
+	.share-container {
+		--item-height: 3.5rem;
+
+		display: grid;
+		grid-auto-flow: column;
+		grid-template-rows: var(--item-height);
+
+		padding: 1rem;
+		list-style-type: none;
+
+		justify-items: start;
+
+		.share-item {
+			display: block;
+			height: var(--item-height);
+			padding: 1rem;
+			line-height: 1.5rem;
+
+			img {
+				height: 100%;
+			}
+		}
+	}
+}
+
+#no_hide_toast {
+	.toast-body {
+		img {
+			margin: auto;
+		}
+	}
+}
