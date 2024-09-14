@@ -410,7 +410,7 @@ const draw = (lap) => {
 	};
 
 	g[lap].chart = new Chart(g[lap].context, {
-		type: 'scatter',
+		type: 'line',
 		data,
 		options: {
 			scales: {
@@ -443,6 +443,7 @@ const draw = (lap) => {
 							return (value + 1) + 'st';
 						},
 						stepSize: 100,
+						autoSkip: true,
 					},
 					beginAtZero: true,
 				}
