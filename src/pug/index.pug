@@ -23,9 +23,9 @@ html(lang='ja')
     body(style='background-image: url("assets/bg_body.png");')
         header(style='background-image: url("assets/trist_logo.png");')
             h1.invisible Trist
-            div(data-bs-toggle='modal' data-bs-target='#navi')
-                svg.touchable_icon(version='1.1' xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32')
-                    use(xlink:href='assets/icon/cog.svg#root')
+            div.btn(data-bs-toggle='modal' data-bs-target='#navi' style='background-color: #eee; padding: 0rem 0.3rem; margin-inline-end: 1rem; border-radius: 0.3rem;')
+                span.icon_in_text.bi-person-lines-fill 
+                span.icon_in_text.bi-caret-down-fill
 
         nav#navi.modal
             .modal-dialog.modal-dialog-scrollable
@@ -59,11 +59,7 @@ html(lang='ja')
 
                         .tab-pane.fade#group-tab
                             p お試し
-                                select#group.form-select(multiple=true) 
-                    .modal-footer.d-none 
-                        p SHARE by
-                            i#copy_url.icon_in_text.bi-link
-                            img#share_by_x.icon_in_text(src='assets/icon/x-logo-black.png')
+                                select#group.form-select(multiple=true)
 
         .debug 
             button#redraw 再描画
@@ -217,8 +213,6 @@ html(lang='ja')
                     use(xlink:href='assets/icon/user-plus.svg#root')
                 svg#icon_user-minus(version='1.1' xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32')
                     use(xlink:href='assets/icon/user-minus.svg#root')
-                svg#icon_cog(version='1.1' xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32')
-                    use(xlink:href='assets/icon/cog.svg#root')
 
         // Bootstrap core JS
         script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js')
