@@ -227,6 +227,34 @@ section.view {
 	}
 }
 
+.member-list-item {
+	.number::before {
+		content: '(';
+	}
+
+	.number::after {
+		content: ')';
+	}
+
+	button {
+		svg {
+			display: none;
+		}
+	}
+
+	button[data-member-update-mode='add'] {
+		svg.user-plus {
+			display: block;
+		}
+	}
+
+	button[data-member-update-mode='remove'] {
+		svg.user-minus {
+			display: block;
+		}
+	}
+}
+
 #lap_time_chart {
 	.time_bar {
 		border-left: black solid 1px;

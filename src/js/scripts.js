@@ -121,34 +121,7 @@ const sec_to_mss_with_sign = sec => {
 	return `${sign}${m}:${('00' + s).slice(-2)}`;
 };
 
-/**
- * 各ラップカードの内容をクリアする
- * 特にチャートやランキングの再構築前に必要となる
- * @param {'swim'|'bike'|'run'|'record'} lap 
- */
-const clear = lap => {
-	if (g[lap].chart) g[lap].chart.destroy();
-	g[lap].chart = null;
-
-	document.querySelector(`#view_${lap} ul.ranking`).textContent = '';
-};
-
-/**
- * すべてのラップカードの内容をクリアする
- */
-const clear_all = () => {
-	laps.forEach(lap => clear(lap));
-};
-
-/**
- * すべてのラップカードのチャート、ランキングを描画する
- */
-const draw_all = () => {
-	laps.forEach(x => {
-		draw(x);
-		draw_member_ranking(x);
-	});
-
+const draw_summaries = () => {
 	{
 		//ラップタイムサマリー
 		const root = document.querySelector('#lap_time_chart');
@@ -175,6 +148,45 @@ const draw_all = () => {
 			root.parentElement.classList.add('d-none');
 		}
 	}
+};
+
+/**
+ * 各ラップカードのランキング内容をクリアする
+ * 特にチャートやランキングの再構築前に必要となる
+ * @param {'swim'|'bike'|'run'|'record'} lap 
+ */
+const clear_ranking = lap => {
+	document.querySelector(`#view_${lap} ul.ranking`).textContent = '';
+};
+
+/**
+ * 各ラップカードのチャートの内容をクリアする
+ * 特にチャートやランキングの再構築前に必要となる
+ * @param {'swim'|'bike'|'run'|'record'} lap 
+ */
+const clear = lap => {
+	if (g[lap].chart) g[lap].chart.destroy();
+	g[lap].chart = null;
+};
+
+/**
+ * すべてのラップカードの内容をクリアする
+ */
+const clear_all = () => {
+	laps.forEach(lap => clear(lap));
+};
+
+/**
+ * すべてのラップカードのチャート、ランキングを描画する
+ */
+const draw_all = () => {
+	laps.forEach(x => {
+		draw(x);
+		clear_ranking(x);
+		draw_member_ranking(x);
+	});
+
+	draw_summaries();
 };
 
 /**
@@ -266,7 +278,7 @@ const draw_lap_score_summary = (root, template) => {
 				} else {
 					elem.textContent = '';
 					elem.style.color = 'rgba(0 0 0 0.7)';
-					elem.style.width = score_to_width(50);
+					elem.style.width = '0';
 				}
 			});
 
@@ -279,6 +291,11 @@ const draw_lap_score_summary = (root, template) => {
 			while (row.firstElementChild) root.insertBefore(row.firstElementChild, insert_position);
 		});
 };
+
+const summary_drawer = [
+	draw_lap_time_summary,
+	draw_lap_score_summary,
+];
 
 /**
  * 
@@ -309,16 +326,6 @@ const generate_element = arg => {
 	}
 
 	return elem;
-};
-
-/**
- * アイコンSVG要素を作成する
- * SVGデータは、assets/icon ディレクトリ下に保存されている必要がある
- * @param {string} name 
- * @returns {Element}
- */
-const generate_svg_icon_element = name => {
-	return document.querySelector('#icon_' + name).cloneNode(true);
 };
 
 /**
@@ -535,26 +542,18 @@ const updated_target_data = () => {
 };
 
 /**
- * メンバーリストが変更されたイベントを発行する
- * メンバーリスト要素の再構築が期待される
+ * 
+ * @param {PersonResult} member_data 
+ * @returns {PersonChartData}
  */
-const updated_member_list = () => {
-	document.querySelector('#member_list').dispatchEvent(new Event('member_list_update'));
-
-	// 色指定が無かったら追加する
-	g.member_data.forEach(member => {
-		laps.forEach(lap => update_member_stats(member, lap));
-	});
-
-	g.member_chart_data = g.member_data.map(d => {
-		return Object.fromEntries([
-			['tag', d],
-			...laps.map(lap => {
-				const lap_x = d[lap + '_sec'];
-				const lap_y = g.chart_data[lap_x - g.chart_data[0]?.x]?.[lap];
-				return [lap, { x: lap_x, y: lap_y }];
-			})]);
-	});
+const generate_member_chart_data = member_data => {
+	return Object.fromEntries([
+		['tag', member_data],
+		...laps.map(lap => {
+			const lap_x = member_data[lap + '_sec'];
+			const lap_y = g.chart_data[lap_x - g.chart_data[0]?.x]?.[lap];
+			return [lap, { x: lap_x, y: lap_y }];
+		})]);
 };
 
 /**
@@ -613,19 +612,97 @@ window.addEventListener('load', () => {
 		});
 	}
 
+	// メンバー追加・削除要素作成
+	const active_member_list_element = document.querySelector('#member_list');
+	const new_member_list_element = document.querySelector('#new_member_list');
+	const member_list_template = document.querySelector('#member_list_template');
+
+	/**
+	 * 
+	 * @param {PersonResult} member_data 
+	 * @param {'add'|'remove'} mode add: メンバー追加候補状態 remove: 既にメンバーに追加されてチャートに描画されてる状態 
+	 */
+	const generate_member_list_element = (member_data, mode) => {
+		const elem = member_list_template.cloneNode(true);
+		elem.id = '';
+
+		elem.querySelector('.display_name').textContent = member_data.display_name;
+		elem.querySelector('.number').textContent = member_data.number;
+
+		const button = elem.querySelector('button');
+
+		button.setAttribute('data-member-update-mode', mode);
+
+		button.addEventListener('click', () => {
+			const mode = button.getAttribute('data-member-update-mode');
+
+			if (mode === 'add') {
+				button.setAttribute('data-member-update-mode', 'remove');
+
+				new_member_list_element.removeChild(elem);
+				active_member_list_element.appendChild(elem);
+
+				laps.forEach(lap => update_member_stats(member_data, lap));
+
+				g.member_data.push(member_data);
+				g.member_chart_data.push(generate_member_chart_data(member_data));
+			} else if (mode === 'remove') {
+				active_member_list_element.removeChild(elem);
+
+				const i = g.member_data.findIndex(d => d == member_data);
+				g.member_data.splice(i, 1);
+				g.member_chart_data.splice(i, 1);
+			} else {
+				throw new Error('Unset data-member-update-mode');
+			}
+
+			// 関係する要素の再描画処理
+			laps.forEach(lap => {
+				g[lap].chart.update();
+
+				clear_ranking(lap);
+				draw_member_ranking(lap);
+			});
+
+			update_search_string();
+
+			draw_summaries();
+		});
+
+		return elem;
+	};
+
+
 	fetch(g.race_file)
 		.then(res => res.json())
 		.then(json => {
 			g.course = json.course;
 			g.target = g.data = json.result;
+
+			g.member_data = g.data.filter(x => g.member_ids.includes(x.number));
+			delete g.member_ids;
+
 			updated_target_data();
 
+			g.member_chart_data = g.member_data.map(d => generate_member_chart_data(d));
+
+			// 初期メンバーリスト要素を作る
+			g.member_data.map(d => generate_member_list_element(d, 'remove'))
+				.forEach(elem => active_member_list_element.appendChild(elem));
+
+			// 各Viewにレース名をいれる（薄字のやつ）
 			Array.from(document.querySelectorAll('.course_name')).forEach(elem => elem.textContent = g.course.name);
 
-			['swim', 'bike', 'run'].forEach(x => document.querySelector(`#view_${x} .distance`).textContent = g.course.distance[x] + ' km');
-			document.querySelector('#view_record .distance').textContent = g.course.category;
+			{
+				// 種目別ビューの距離をいれる
+				sub_laps.forEach(x => document.querySelector(`#view_${x} .distance`).textContent = g.course.distance[x] + ' km');
+
+				// 総合は距離の代わりに、ディタンスカテゴリ
+				document.querySelector('#view_record .distance').textContent = g.course.category;
+			}
 
 			{
+				// レース情報
 				document.querySelector('title').textContent = `${g.course.name} :: Trist`;
 
 				const course_summary = document.querySelector('#course_summary');
@@ -640,10 +717,6 @@ window.addEventListener('load', () => {
 					course_summary.appendChild(p);
 				})
 			}
-
-			g.member_data = g.data.filter(x => g.member_ids.includes(x.number));
-			delete g.member_ids;
-			updated_member_list();
 
 			return json.result;
 		})
@@ -699,106 +772,17 @@ window.addEventListener('load', () => {
 
 	// メンバー追加処理
 	document.querySelector('#new_member_input').addEventListener('input', event => {
+		new_member_list_element.textContent = '';
+
 		const v = event.target.value;
-
-		const ul = document.querySelector('#new_member_list');
-		ul.textContent = '';
-
 		if (v === '') return;
 
 		g.data
 			.filter(x => x.number === v || x.display_name.includes(v))
 			// ToDo: 追加済みメンバーとの重複チェックをここにいれる
-			.map(x => {
-				return {
-					tag: 'li',
-					class: 'list-group-item d-flex',
-					child: [{
-						tag: 'span',
-						text: `${x.display_name}`,
-						class: 'align-self-center',
-					}, {
-						tag: 'span',
-						text: `(${x.number})`,
-						class: 'align-self-center',
-					},
-					{
-						tag: 'button',
-						class: 'btn ms-auto',
-					}],
-					object: x,
-				};
-			})
-			.map(x => {
-				const elem = generate_element(x);
-				const button = elem.querySelector('button');
-
-				button.addEventListener('click', () => {
-					g.member_data.push(x.object);
-
-					ul.removeChild(elem);
-
-					updated_member_list();
-					draw_all();
-				}, { once: true });
-
-				const icon = generate_svg_icon_element('user-plus');
-				icon.classList.add('touchable_small_icon');
-				button.appendChild(icon);
-
-				return elem;
-			})
-			.forEach(x => ul.appendChild(x));
+			.map(x => generate_member_list_element(x, 'add'))
+			.forEach(x => new_member_list_element.appendChild(x));
 	});
-
-	document.querySelector('#member_list').addEventListener('member_list_update', event => {
-		const ul = event.target;
-
-		ul.textContent = '';
-		g.member_data
-			.map(x => ({
-				object: x,
-				tag: 'li',
-				class: 'list-group-item d-flex',
-				child: [{
-					tag: 'span',
-					text: `${x.display_name}`,
-					class: 'align-self-center',
-				}, {
-					tag: 'span',
-					text: `(${x.number})`,
-					class: 'align-self-center',
-				},
-				{
-					tag: 'button',
-					class: 'btn ms-auto',
-				}],
-
-			}))
-			.map((x, i) => {
-				const elem = generate_element(x);
-				const button = elem.querySelector('button');
-
-				button.addEventListener('click', () => {
-					g.member_data.splice(i, 1);
-					g.member_chart_data.splice(i, 1);
-					ul.removeChild(elem);
-
-					laps.forEach(lap => g[lap].chart.update());
-				}, { once: true });
-
-				const icon = generate_svg_icon_element('user-minus');
-				icon.classList.add('touchable_small_icon');
-				button.appendChild(icon);
-
-				return elem;
-			})
-			.forEach(x => ul.appendChild(x));
-
-		update_search_string();
-		draw_all();
-	});
-
 }, { once: true });
 
 window.addEventListener('resume', () => {
