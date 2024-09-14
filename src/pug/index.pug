@@ -43,6 +43,15 @@ html(lang='ja')
                                 h5.align-self-center.me-3.mt-auto.mb-auto Add
                                 label.align-self-center.flex-grow-1
                                     input#new_member_input.w-100(placeholder='名前, ゼッケン番号') 
+                            ul.d-none
+                                li#member_list_template.member-list-item.list-group-item.d-flex 
+                                    span.display_name.align-self-center 
+                                    span.number.align-self-center 
+                                    button.btn.ms-auto 
+                                        svg.user-plus(version='1.1' xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32')
+                                            use(xlink:href='assets/icon/user-plus.svg#root')
+                                        svg.user-minus(version='1.1' xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32')
+                                            use(xlink:href='assets/icon/user-minus.svg#root')
                             ul#new_member_list.list-group.mt-2
                             h5 Members
                             ul#member_list.list-group
