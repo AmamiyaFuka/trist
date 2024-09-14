@@ -251,14 +251,16 @@ const draw_lap_score_summary = (root, template) => {
 				if (!member.stats) return;
 				const v = member.stats[lap]?.score;
 				const elem = row.querySelector('.stack_bar.' + lap);
+
+				// 幅の計算方法は styles.scss を参照のこと
+				const score_to_width = dev => Math.round(dev * 20 / 7) + '%';
 				if (v) {
 					elem.textContent = Math.round(v);
-					// 幅の計算方法は styles.scss を参照のこと
-					elem.style.width = Math.round(v * 20 / 7) + '%';
+					elem.style.width = score_to_width(v);
 				} else {
 					elem.textContent = '';
 					elem.style.color = 'rgba(0 0 0 0.7)';
-					elem.style.width = '200%';
+					elem.style.width = score_to_width(50);
 				}
 			});
 
@@ -384,23 +386,22 @@ const draw = (lap) => {
 			parsing: { xAxisKey: 'x', yAxisKey: lap },
 			// backgroundColor: 'rgb(000, 111, 222)',
 			order: 1000,
-		}, ...g.member_data.map((d, i) => {
-			const x = d[key_sec];
-			return {
-				label: d.display_name,
-				data: [{
-					x, ...g.chart_data[x - g.chart_data[0].x],
-
-					// Chart.jsからみたら不要なデータ
-					// Tooltipの表示に利用
-					tag: d,
-				}],
-				parsing: { xAxisKey: 'x', yAxisKey: lap },
-				order: i + 1,
-				pointRadius: 8,
-				pointHitRadius: 3,
-				backgroundColor: d.color,
-			};
+		}, ({
+			showLine: false,
+			data: g.member_data.map((d, i) => {
+				return Object.fromEntries([
+					['tag',d],
+					...laps.map(lap => {
+					const lap_x = d[lap + '_sec'];
+					const lap_y = g.chart_data[lap_x - g.chart_data[0]?.x]?.[lap];
+					return [lap, {x: lap_x, y: lap_y}];
+				})]);
+			}),
+			parsing: {xAxisKey: lap + '.x', yAxisKey: lap + '.y'},
+			order: 1,
+			pointRadius: 8,
+			pointHitRadius: 3,
+			backgroundColor: g.member_data.map(d => d.color),
 		})],
 	};
 
