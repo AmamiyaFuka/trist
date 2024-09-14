@@ -396,14 +396,14 @@ const draw = (lap) => {
 			showLine: false,
 			data: g.member_data.map(d => {
 				return Object.fromEntries([
-					['tag',d],
+					['tag', d],
 					...laps.map(lap => {
-					const lap_x = d[lap + '_sec'];
-					const lap_y = g.chart_data[lap_x - g.chart_data[0]?.x]?.[lap];
-					return [lap, {x: lap_x, y: lap_y}];
-				})]);
+						const lap_x = d[lap + '_sec'];
+						const lap_y = g.chart_data[lap_x - g.chart_data[0]?.x]?.[lap];
+						return [lap, { x: lap_x, y: lap_y }];
+					})]);
 			}),
-			parsing: {xAxisKey: lap + '.x', yAxisKey: lap + '.y'},
+			parsing: { xAxisKey: lap + '.x', yAxisKey: lap + '.y' },
 			order: 1,
 			pointRadius: 8,
 			pointHitRadius: 3,
@@ -454,13 +454,18 @@ const draw = (lap) => {
 			plugins: {
 				tooltip: {
 					callbacks: {
-						label: (items) => {
-							const d = items.raw.tag;
+						title: () => '',
+						label: (item) => {
+							const d = item.raw.tag;
 							const time = sec_to_hhmmss(d[lap + '_sec']);
 
-							const tips = [`${d.display_name} ${time}`, `${items.raw.y}位`];
+							const tips = [`${d.display_name} ${time}`, `${item.raw[lap].y}位`];
 
-							const stats = d.stats[lap];
+							return tips.join(', ');
+						},
+						afterLabel: item => {
+							const tips = [];
+							const stats = item.raw.tag.stats[lap];
 
 							if (stats.valid) {
 								if (stats.percentile) tips.push(`上位${(stats.percentile * 100).toString().substring(0, 4)}%`);
@@ -468,8 +473,9 @@ const draw = (lap) => {
 							}
 
 							return tips.join(', ');
-						},
-					}
+						}
+					},
+					// mode: 'nearest',
 				},
 
 				legend: {
