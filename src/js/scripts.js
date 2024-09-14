@@ -526,8 +526,15 @@ const update_target_data = target => {
 	});
 
 	// 全レコードのデータをまとめる
-	const time_min = Math.min(...laps.map(lap => g[lap]?.stats?.time?.min).filter(x => x));
-	const time_max = Math.max(...laps.map(lap => g[lap]?.stats?.time?.max).filter(x => x));
+	const time_min = Math.min(...laps.filter(lap => g[lap]?.stats?.valid).map(lap => g[lap].stats.time.min));
+	const time_max = Math.max(...laps.filter(lap => g[lap]?.stats?.valid).map(lap => g[lap].stats.time.max));
+
+	if (!(isFinite(time_max) && isFinite(time_min))) {
+		g.chart_data = [];
+		g.member_chart_data = [];
+
+		return;
+	}
 
 	g.chart_data = Array(time_max - time_min).fill(0)
 		.map((_, i) => time_min + i)
