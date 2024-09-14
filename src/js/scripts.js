@@ -389,14 +389,13 @@ const draw = (lap) => {
 			return {
 				label: d.display_name,
 				data: [{
-					x, y: g.chart_data[x - g.chart_data[0].x]?.[lap],
+					x, ...g.chart_data[x - g.chart_data[0].x],
 
 					// Chart.jsからみたら不要なデータ
 					// Tooltipの表示に利用
 					tag: d,
-
 				}],
-				parsing: { xAxisKey: 'x', yAxisKey: 'y' },
+				parsing: { xAxisKey: 'x', yAxisKey: lap },
 				order: i + 1,
 				pointRadius: 8,
 				pointHitRadius: 3,
