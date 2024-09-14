@@ -372,22 +372,16 @@ const draw = (lap) => {
 	const time_min = Math.floor(stats.time.min / time_step_sec) * time_step_sec;
 	const time_max = Math.ceil(stats.time.max / time_step_sec) * time_step_sec;
 
-	const accumulate = Array(time_max - time_min).fill(0)
-		.map((_, i) => time_min + i)
-		.map(x => {
-			const y = stats.sorted_times.findIndex(t => t > x);
-			return { x, y: y > 0 ? y : undefined };
-		});
-
 	const data = {
 		datasets: [{
-			label: '全体累積分布',
+			label: '順位',
 			type: 'line',
 			showLine: true,
 			tension: 0.05,
 			pointRadius: 0,
 			pointHitRadius: 0,
-			data: accumulate,
+			data: g.chart_data,
+			parsing: { xAxisKey: 'x', yAxisKey: lap },
 			// backgroundColor: 'rgb(000, 111, 222)',
 			order: 1000,
 		}, ...g.member_data.map((d, i) => {
@@ -395,12 +389,14 @@ const draw = (lap) => {
 			return {
 				label: d.display_name,
 				data: [{
-					x, y: accumulate.find(n => n.x === x)?.y,
+					x, y: g.chart_data[x - g.chart_data[0].x]?.[lap],
 
 					// Chart.jsからみたら不要なデータ
 					// Tooltipの表示に利用
 					tag: d,
+
 				}],
+				parsing: { xAxisKey: 'x', yAxisKey: 'y' },
 				order: i + 1,
 				pointRadius: 8,
 				pointHitRadius: 3,
@@ -413,6 +409,7 @@ const draw = (lap) => {
 		type: 'line',
 		data,
 		options: {
+			parsing: true,
 			scales: {
 				x: {
 					type: 'linear',
@@ -513,6 +510,20 @@ const updated_target_data = () => {
 			stdev,
 		};
 	});
+
+	// 全レコードのデータをまとめる
+	const time_min = Math.min(...laps.map(lap => g[lap]?.stats?.time?.min).filter(x => x));
+	const time_max = Math.max(...laps.map(lap => g[lap]?.stats?.time?.max).filter(x => x));
+
+	g.chart_data = Array(time_max - time_min).fill(0)
+		.map((_, i) => time_min + i)
+		.map(x => ({
+			x,
+			...Object.fromEntries(laps.map(lap => {
+				const v = g[lap].stats.sorted_times.findIndex(t => t > x);
+				return [lap, v > 0 ? v : undefined];
+			})),
+		}));
 
 	update_all_member_stats();
 };
