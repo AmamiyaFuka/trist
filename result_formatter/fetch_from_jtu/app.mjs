@@ -10,18 +10,18 @@ const formatter = new Formatter();
 const minami_hokkaido = {
 	course: {
 		name: 'アイアンマンジャパン みなみ北海道',
-		short_name: 'IMジャパン2024',
+		short_name: 'IMジャパン',
 		starttime: new Date('2024-09-15T06:30' + '+09:00').getTime(),
-		weather: '',
+		weather: '曇り',
 		distance: {
 			swim: 3.8,
 			bike: 180,
 			run: 42.2,
 		},
 		locale: '日本, 北海道',
-		url: 'https://triathlon-south-hokkaido.com/archives/3104',
+		url: 'https://triathlon-south-hokkaido.com',
 	},
-	result_id: 'xxx_x', output_file: 'minami-hokkaido_2024'
+	result_id: 'xxx_x', output_file: 'imj_minami-hokkaido_2024'
 };
 
 const murakami_2023 = {
@@ -75,7 +75,24 @@ const yusui_2024_f = {
 	result_id: '246_2', output_file: 'yusui_2024f'
 };
 
-const target = yusui_2024_f;
+const setouchi = {
+	course: {
+		name: '瀬戸内しまなみ海道 今治伯方島トライアスロン',
+		short_name: '今治伯方島',
+		starttime: new Date('2024-09-15T08:00' + '+09:00').getTime(),
+		weather: '曇り',
+		distance: {
+			swim: 1.5,
+			bike: 40,
+			run: 10,
+		},
+		locale: '日本, 愛媛県',
+		url: 'https://imabari-triathlon.com/',
+	},
+	result_id: '285_1', output_file: 'imabari_2024'
+};
+
+const target = setouchi
 
 Promise.all([
 	Course.get(target.course),
