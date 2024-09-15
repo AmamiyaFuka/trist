@@ -810,12 +810,13 @@ window.addEventListener('load', () => {
 		document.querySelector('#share-link').addEventListener('click', () => {
 			navigator.permissions.query({ name: "clipboard-write" })
 				.then((result) => {
-					if (result.state === "granted" || result.state === "prompt") {
-						return navigator.clipboard.writeText(window.location.href);
-						/* write to the clipboard now */
-					}
+					if (result.state === "granted" || result.state === "prompt") return;
 					throw 'permission request failed.';
 				})
+				// Safariは clipboard.writeText は出来るが、permissions.query はできない
+				// Chromeは permission.query は出来るし、特にAndroidでは clipboard.writeText より前に実行する
+				// permission.query の結果にかかわらず clipboard.writeText を試すことで両方に対応する
+				.finally(() => navigator.clipboard.writeText(window.location.href))
 				.then(() => 'URLをコピーしました')
 				.catch(() => 'URLのコピーに失敗しました')
 				.then(message => {
