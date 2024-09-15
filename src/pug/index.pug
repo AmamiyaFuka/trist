@@ -21,11 +21,26 @@ html(lang='ja')
 
 
     body(style='background-image: url("assets/bg_body.png");')
-        header(style='background-image: url("assets/trist_logo.png");')
-            h1.invisible Trist
-            div.btn(data-bs-toggle='modal' data-bs-target='#navi' style='background-color: #eee; padding: 0rem 0.3rem; margin-inline-end: 1rem; border-radius: 0.3rem;')
-                span.icon_in_text.bi-person-lines-fill 
-                span.icon_in_text.bi-caret-down-fill
+        header.d-flex(style='background-image: url("assets/trist_logo.png"); \
+            background-size: auto 2rem; \
+            justify-content: space-between; \
+            flex-flow: row-reverse wrap; \
+            row-gap: 1rem;')
+            h1.invisible.d-none Trist
+            .btn.bi-list(data-bs-toggle='modal' data-bs-target='#navi' style='background-color: #eee; \
+                    padding: 0 0.3rem; \
+                    margin: 0 1rem;')
+            .d-grid.ms-auto(style='grid-auto-flow: column; \
+                    grid-template-columns: 1fr 1fr 1fr; \
+                    grid-gap: 1rem;' data-bs-theme='dark')
+                .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#race-tab"]') Race 
+                    span.bi-grid-fill
+                .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#member-tab"]') Member
+                    span.bi-person-plus-fill
+                .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#group-tab"]') Group 
+                    span.bi-filter
+
+
 
         nav#navi.modal
             .modal-dialog.modal-dialog-scrollable
@@ -39,6 +54,7 @@ html(lang='ja')
                     .modal-body.tab-content 
                         .tab-pane.fade.show.active#race-tab
                             ul#race_list
+
                         .tab-pane.fade#member-tab
                             .d-flex
                                 h5.align-self-center.me-3.mt-auto.mb-auto Add
@@ -104,7 +120,7 @@ html(lang='ja')
                 .chart
                     canvas
                 ul.ranking
-            
+
             section#lap_time.view.summary.d-none
                 h3.course_name 
                 h2.marker-lap_time タイム
@@ -129,7 +145,7 @@ html(lang='ja')
                     .stack_bar.run
                         img(src='assets/icon/run.png')
                     .dummy
-                                
+
             section#lap_score.view.summary.d-none
                 h3.course_name 
                 h2.marker-lap_time スコア
@@ -160,14 +176,14 @@ html(lang='ja')
                     .score-bg.score-bg-l 
                     .score-bg.score-bg-r 
                     .dummy 
-                    
+
                     .picto 
                         img(src='assets/icon/bike.png')
                     .bike.stack_bar 
                     .score-bg.score-bg-l 
                     .score-bg.score-bg-r 
                     .dummy 
-                    
+
                     .picto 
                         img(src='assets/icon/run.png')
                     .run.stack_bar 
@@ -205,7 +221,7 @@ html(lang='ja')
                     strong.toast-message.me-auto Hello, world 
                     button.btn-close(data-bs-dismiss='toast')
                 .toast-body
-        
+
         .icons.d-none
             //- 利用するSVGアイコンすべて読み込んでおく
             .icons.d-none

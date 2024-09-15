@@ -69,9 +69,6 @@ img.emoji {
 
 
 header {
-	display: grid;
-	grid-template-columns: auto max-content;
-
 	background-size: contain;
 	background-repeat: no-repeat;
 	background-color: #111;
@@ -87,6 +84,11 @@ header {
 
 	.touchable_icon:hover {
 		fill: white;
+	}
+
+	.btn-menu {
+		padding: 0.1rem 1rem;
+		border-color: #aaa;
 	}
 }
 

@@ -799,37 +799,51 @@ window.addEventListener('load', () => {
 			.forEach(x => new_member_list_element.appendChild(x));
 	});
 
-	// Share機能
-	const hide_toast = document.querySelector('#hide_toast');
-	const no_hide_toast = document.querySelector('#no_hide_toast');
-	document.querySelector('#share-link').addEventListener('click', () => {
-		navigator.permissions.query({ name: "clipboard-write" })
-			.then((result) => {
-				if (result.state === "granted" || result.state === "prompt") {
-					return navigator.clipboard.writeText(window.location.href);
-					/* write to the clipboard now */
-				}
-				throw 'permission request failed.';
-			})
-			.then(() => 'URLをコピーしました')
-			.catch(() => 'URLのコピーに失敗しました')
-			.then(message => {
-				hide_toast.querySelector('.toast-message').textContent = message;
-				hide_toast_bootstrap.show();
-			});
+	{
+		// Share機能
+		const hide_toast = document.querySelector('#hide_toast');
+		const hide_toast_bootstrap = bootstrap.Toast.getOrCreateInstance(hide_toast);
 
-	});
+		const no_hide_toast = document.querySelector('#no_hide_toast');
+		const no_hide_toast_bootstrap = bootstrap.Toast.getOrCreateInstance(no_hide_toast);
 
-	const hide_toast_bootstrap = bootstrap.Toast.getOrCreateInstance(hide_toast);
-	const no_hide_toast_bootstrap = bootstrap.Toast.getOrCreateInstance(no_hide_toast);
-	document.querySelector('#share-qr').addEventListener('click', () => {
-		no_hide_toast.querySelector('.toast-message').textContent = document.title;
+		document.querySelector('#share-link').addEventListener('click', () => {
+			navigator.permissions.query({ name: "clipboard-write" })
+				.then((result) => {
+					if (result.state === "granted" || result.state === "prompt") {
+						return navigator.clipboard.writeText(window.location.href);
+						/* write to the clipboard now */
+					}
+					throw 'permission request failed.';
+				})
+				.then(() => 'URLをコピーしました')
+				.catch(() => 'URLのコピーに失敗しました')
+				.then(message => {
+					hide_toast.querySelector('.toast-message').textContent = message;
+					hide_toast_bootstrap.show();
+				});
 
-		no_hide_toast.querySelector('.toast-body').textContent = '';
-		new QRCode(no_hide_toast.querySelector('.toast-body'), window.location.href);
+		});
 
-		no_hide_toast_bootstrap.show();
-	});
+		document.querySelector('#share-qr').addEventListener('click', () => {
+			no_hide_toast.querySelector('.toast-message').textContent = document.title;
+
+			no_hide_toast.querySelector('.toast-body').textContent = '';
+			new QRCode(no_hide_toast.querySelector('.toast-body'), window.location.href);
+
+			no_hide_toast_bootstrap.show();
+		});
+	}
+
+	{
+		// 一旦
+		// メニューモーダル表示時にタブも切り替える
+		Array.from(document.querySelectorAll('.btn-menu')).forEach(elem => {
+			const tab = document.querySelector(elem.getAttribute('data-tab'));
+			const tab_trigger = bootstrap.Tab.getOrCreateInstance(tab);
+			elem.addEventListener('click', () => tab_trigger.show());
+		});
+	}
 }, { once: true });
 
 window.addEventListener('resume', () => {
