@@ -20,11 +20,10 @@ module.exports = function generateListFile() {
 	});
 
 	list.sort((a, b) => {
-		const dt = b.course.starttime - a.course.starttime;
-		if (dt !== 0) return dt;
+		const va = `${new Date(a.course.starttime).toISOString().split('T')[0]} ${a.course.short_name}`;
+		const vb = `${new Date(b.course.starttime).toISOString().split('T')[0]} ${b.course.short_name}`;
 
-		return a.course.short_name < b.course.short_name ? 1 :
-			a.course.short_name > b.course.short_name ? -1 : 0;
+		return va < vb ? 1 : va > vb ? -1 : 0;
 	});
 
 	fs.writeFileSync(dst_file, JSON.stringify(list));
