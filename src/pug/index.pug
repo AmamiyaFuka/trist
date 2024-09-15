@@ -21,10 +21,10 @@ html(lang='ja')
 
 
     body(style='background-image: url("assets/bg_body.png");')
-        header.d-flex.flex-row-reverse.flex-wrap.justify-content-end(style='background-image: url("assets/trist_logo.png"); \
+        header.d-flex.flex-row-reverse.flex-wrap.justify-content-between(style='background-image: url("assets/trist_logo.png"); \
             background-size: auto 2rem;')
-            h1.invisible.d-none Trist
-            .btn.btn-light.bi-list.px-1.py-0.mx-3.my-0(data-bs-toggle='modal' data-bs-target='#navi')
+            h1.d-none Trist
+            .btn.btn-light.bi-list.px-1.py-0.mx-3.my-1(data-bs-toggle='modal' data-bs-target='#navi')
             .d-grid.ms-auto.gap-3(style='grid-auto-flow: column; grid-template-columns: 1fr 1fr 1fr;' data-bs-theme='dark')
                 .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#race-tab"]') Race 
                     span.bi-grid-fill
