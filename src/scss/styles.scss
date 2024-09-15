@@ -194,25 +194,6 @@ section.view {
 #navi {
 	margin-top: 12ex;
 	height: calc(90vh - 12ex);
-
-	#race_list {
-		padding: 0;
-
-		li {
-			background-color: #eee;
-			border-color: #222;
-
-			a {
-				text-decoration: none;
-				color: currentColor;
-			}
-		}
-
-		li.active {
-			background-color: #222;
-			color: #eee;
-		}
-	}
 }
 
 .debug {
@@ -420,7 +401,8 @@ section.view {
 		grid-auto-flow: column;
 		grid-template-rows: var(--item-height);
 
-		padding: 1rem;
+		margin: 0;
+		padding: 0.2rem 1rem;
 		list-style-type: none;
 
 		justify-items: start;

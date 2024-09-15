@@ -27,12 +27,8 @@ html(lang='ja')
             flex-flow: row-reverse wrap; \
             row-gap: 1rem;')
             h1.invisible.d-none Trist
-            .btn.bi-list(data-bs-toggle='modal' data-bs-target='#navi' style='background-color: #eee; \
-                    padding: 0 0.3rem; \
-                    margin: 0 1rem;')
-            .d-grid.ms-auto(style='grid-auto-flow: column; \
-                    grid-template-columns: 1fr 1fr 1fr; \
-                    grid-gap: 1rem;' data-bs-theme='dark')
+            .btn.bi-list.px-1.py-0.mx-3.my-0(data-bs-toggle='modal' data-bs-target='#navi' style='background-color: #eee;')
+            .d-grid.ms-auto.gap-3(style='grid-auto-flow: column; grid-template-columns: 1fr 1fr 1fr;' data-bs-theme='dark')
                 .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#race-tab"]') Race 
                     span.bi-grid-fill
                 .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#member-tab"]') Member
@@ -51,9 +47,13 @@ html(lang='ja')
                             a.nav-link(data-bs-toggle='tab' data-bs-target='#member-tab') Member
                             a.nav-link(data-bs-toggle='tab' data-bs-target='#group-tab') Group
                         button.btn-close(type='button' aria-label='Close' data-bs-dismiss='modal')
-                    .modal-body.tab-content 
+                    .modal-body.tab-content.p-0.m-3 
                         .tab-pane.fade.show.active#race-tab
-                            ul#race_list
+                            #race_list.d-flex.flex-row.flex-wrap
+                            #race_list_divider_template.d-none.row.flex-nowrap.align-items-center.fs-6.overflow-hidden.w-100.sticky-top.bg-body 
+                                p.year_value.col-auto.m-0 
+                                hr.col.m-0
+                            a#race_list_item_template.d-none.btn.btn-outline-dark.rounded-pill.mx-1.my-2.px-2.py-1
 
                         .tab-pane.fade#member-tab
                             .d-flex
@@ -76,9 +76,6 @@ html(lang='ja')
                         .tab-pane.fade#group-tab
                             p お試し
                                 select#group.form-select(multiple=true)
-
-        .debug 
-            button#redraw 再描画
 
         // Content section
         section#course
