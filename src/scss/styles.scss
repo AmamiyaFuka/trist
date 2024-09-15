@@ -194,25 +194,6 @@ section.view {
 #navi {
 	margin-top: 12ex;
 	height: calc(90vh - 12ex);
-
-	#race_list {
-		padding: 0;
-
-		li {
-			background-color: #eee;
-			border-color: #222;
-
-			a {
-				text-decoration: none;
-				color: currentColor;
-			}
-		}
-
-		li.active {
-			background-color: #222;
-			color: #eee;
-		}
-	}
 }
 
 .debug {

@@ -630,12 +630,6 @@ const update_all_member_stats = () => {
 window.addEventListener('load', () => {
 	laps.forEach(lap => g[lap].context = document.querySelector(`#view_${lap} canvas`))
 
-
-	{
-		// デバッグ用
-		document.querySelector('#redraw').addEventListener('click', () => draw_all());
-	}
-
 	{
 		// Groupフィルタ
 		const group = document.querySelector('#group');
@@ -791,25 +785,45 @@ window.addEventListener('load', () => {
 	fetch('assets/list.json')
 		.then(res => res.json())
 		.then(json => {
-			const ul = document.querySelector('#race_list');
-			ul.textContent = '';
+			const container = document.querySelector('#race_list');
+			container.textContent = '';
 
-			json.forEach(({ race, label }) => {
-				const li = document.createElement('li');
-				['btn', 'rounded-pill', 'm-2'].forEach(x => li.classList.add(x));
+			const item_template = document.querySelector('#race_list_item_template');
+			const divider_template = document.querySelector('#race_list_divider_template');
 
-				const a = document.createElement('a');
+			const group_by_year = json.reduce((a, b) => {
+				const y = new Date(b.course.starttime).getFullYear();
+				if (!(y in a)) a[y] = [];
 
-				a.textContent = label;
-				a.setAttribute('href', '?race=' + race);
+				a[y].push(b);
+				return a;
+			}, {});
+			
+			Object.keys(group_by_year).sort((a, b) => b - a).forEach(year => {
+				const races = group_by_year[year];
 
-				if (g.race === race) {
-					a.classList.add('pe-none');
-					li.classList.add('active');
-				}
+				const divider = divider_template.cloneNode(true);
+				divider.removeAttribute('id');
+				divider.classList.remove('d-none');
+				divider.querySelector('.year_value').textContent = year;
+				container.appendChild(divider);
 
-				li.appendChild(a);
-				ul.appendChild(li);
+				races.forEach(({ race, label }) => {
+					const item = item_template.cloneNode(true);
+					item.removeAttribute('id');
+					item.classList.remove('d-none');
+
+					item.textContent = label;
+					item.setAttribute('href', '?race=' + race);
+
+					if (g.race === race) {
+						item.classList.remove('btn-outline-dark');
+						item.classList.add('btn-dark');
+						item.classList.add('disabled');
+					}
+
+					container.appendChild(item);
+				});
 			});
 		});
 
