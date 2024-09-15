@@ -92,7 +92,25 @@ const setouchi = {
 	result_id: '285_1', output_file: 'imabari_2024'
 };
 
-const target = setouchi
+
+const ishigaki_2023 = {
+	course: {
+		name: '石垣島トライアスロン大会2023',
+		short_name: 'イシトラ',
+		starttime: new Date('2023-04-09T08:00' + '+09:00').getTime(),
+		weather: '晴れ',
+		distance: {
+			swim: 1.5,
+			bike: 40,
+			run: 10,
+		},
+		locale: '日本, 沖縄県',
+		url: 'https://ishigaki-triathlon.jp/%e7%9f%b3%e5%9e%a3%e5%b3%b6%e3%83%88%e3%83%a9%e3%82%a4%e3%82%a2%e3%82%b9%e3%83%ad%e3%83%b32023%e7%ab%b6%e6%8a%80%e7%b5%82%e4%ba%86%e3%81%ae%e3%81%8a%e3%81%97%e3%82%89%e3%81%9b/',
+	},
+	result_id: '172_1', output_file: 'ishigaki_2023'
+};
+
+const target = ishigaki_2023;
 
 Promise.all([
 	Course.get(target.course),
