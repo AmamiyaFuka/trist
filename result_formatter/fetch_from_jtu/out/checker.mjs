@@ -75,8 +75,8 @@ fs.readdir(path.join(__dirname), { withFileTypes: true })
 					}
 
 					const invalid_ratio = Object.fromEntries(times.map(k => ([k, invalid_count[k] / r.length])));
-					console.debug(d.name + 'Invalid count: ' + JSON.stringify(invalid_count, null, '\t'));
-					console.debug(d.name + 'Invalid ratio: ' + JSON.stringify(invalid_ratio, null, '\t'));
+					console.debug(d.name + ': Invalid count: ' + JSON.stringify(invalid_count, null, '\t'));
+					console.debug(d.name + ': Invalid ratio: ' + JSON.stringify(invalid_ratio, null, '\t'));
 				});
 		});
 	});
