@@ -845,6 +845,9 @@ window.addEventListener('load', () => {
 			elem.addEventListener('click', () => tab_trigger.show());
 		});
 	}
+
+	Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+		.forEach(elem => new bootstrap.Tooltip(elem));
 }, { once: true });
 
 window.addEventListener('resume', () => {

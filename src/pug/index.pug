@@ -148,7 +148,12 @@ html(lang='ja')
 
             section#lap_score.view.summary.d-none
                 h3.course_name 
-                h2.marker-lap_time スコア
+                h2.marker-lap_time 
+                    | スコア
+                    span.btn.bi-info-circle(style='padding: 0.2rem 0.5rem; vertical-align: baseline;'
+                        data-bs-toggle='tooltip' 
+                        data-bs-placement='top' 
+                        data-bs-title='レース結果を母集団とした偏差値です')
                 #lap_score_chart
                     #lap_score_footer_start
                     .dummy 
