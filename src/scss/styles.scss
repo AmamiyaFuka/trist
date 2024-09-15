@@ -420,7 +420,8 @@ section.view {
 		grid-auto-flow: column;
 		grid-template-rows: var(--item-height);
 
-		padding: 1rem;
+		margin: 0;
+		padding: 0.2rem 1rem;
 		list-style-type: none;
 
 		justify-items: start;
