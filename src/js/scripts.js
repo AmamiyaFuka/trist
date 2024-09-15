@@ -380,9 +380,6 @@ const draw_member_ranking = (lap) => {
  */
 const draw = (lap) => {
 	clear(lap);
-
-	const key_sec = lap + '_sec';
-
 	const time_step_sec = 600;
 
 	const stats = g[lap].stats;
@@ -403,7 +400,18 @@ const draw = (lap) => {
 			parsing: { xAxisKey: 'x', yAxisKey: lap },
 			// backgroundColor: 'rgb(000, 111, 222)',
 			order: 1000,
-		}, ({
+		}, {
+			type: 'line',
+			showLine: false,
+			pointRadius: 0,
+			pointHitRadius: 0,
+			data: g.density_data,
+			parsing: { xAxisKey: 'x', yAxisKey: lap },
+			order: 1001,
+			yAxisID: 'y_density',
+			backgroundColor: 'hsla(214, 40%, 90%, 0.45)',
+			fill: true,
+		}, {
 			showLine: false,
 			data: g.member_chart_data,
 			parsing: { xAxisKey: lap + '.x', yAxisKey: lap + '.y' },
@@ -411,7 +419,7 @@ const draw = (lap) => {
 			pointRadius: 8,
 			pointHitRadius: 3,
 			backgroundColor: color_pallets.all(),
-		})],
+		}],
 	};
 
 	g[lap].chart = new Chart(g[lap].context, {
@@ -451,7 +459,14 @@ const draw = (lap) => {
 						autoSkip: true,
 					},
 					beginAtZero: true,
-				}
+				},
+				y_density: {
+					type: 'linear',
+					position: 'right',
+					min: 0,
+					grid: { drawOnChartArea: false },
+					ticks: { display: false },
+				},
 			},
 			plugins: {
 				tooltip: {
@@ -534,6 +549,7 @@ const update_target_data = target => {
 
 	if (!(isFinite(time_max) && isFinite(time_min))) {
 		g.chart_data = [];
+		g.density_data = [];
 		g.member_chart_data = [];
 
 		return;
@@ -550,6 +566,18 @@ const update_target_data = target => {
 					return [lap, v > 0 ? v : undefined];
 				})),
 		}));
+
+	const density_sampling = Math.min(80, g.chart_data.length);
+	const density_step = Math.floor(g.chart_data.length / density_sampling);
+	g.density_data = Array(density_sampling).fill(0)
+		.map((_, i) => {
+			const src = Math.max(0, (i - 1) * density_step);
+			const dst = Math.min(g.chart_data.length - 1, i * density_step);
+			return {
+				x: i * density_step + time_min,
+				...Object.fromEntries(laps.map(lap => [lap, g.chart_data[dst][lap] - g.chart_data[src][lap] || undefined])),
+			};
+		});
 
 	update_all_member_stats();
 
