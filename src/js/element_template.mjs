@@ -16,16 +16,15 @@ export default class BootstrapTemplate {
 		// 最も子となる要素から再帰的に登録する
 		const template_element_list = Array.from(document.querySelectorAll('.template'));
 		template_element_list.forEach(template_element => {
-			Array.from(template_element.querySelectorAll('.template'))
-				.forEach(child_template_element => this.init(child_template_element));
+			this.init(template_element);
 
-
+			template_element.classList.remove('template');
 			const id = template_element.getAttribute('id');
 			if (!id || id in this.#templates) return;
 			const elem = template_element.cloneNode(true);
 			elem.removeAttribute('id');
 			this.#templates[id] = elem;
-			
+
 			template_element.parentElement.removeChild(template_element);
 		});
 	};
@@ -44,7 +43,15 @@ export default class BootstrapTemplate {
 
 		if (texts) {
 			Object.entries(texts)
-				.forEach(([query, text]) => elem.querySelector(query).textContent = text);
+				.forEach(([query, text]) => {
+					const node = elem.querySelector(query);
+					if (!node) {
+						console.warn(`Not match ${query}`);
+						return;
+					}
+
+					node.textContent = text;
+				});
 		}
 
 		return elem;
