@@ -643,7 +643,7 @@ window.addEventListener('load', () => {
 
 			// 関係する要素の再描画処理
 			laps.forEach(lap => {
-				g[lap].chart.update();
+				g[lap]?.chart?.update();
 
 				clear_ranking(lap);
 				draw_member_ranking(lap);

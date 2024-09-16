@@ -98,7 +98,7 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
             #course_summary
 
         #view
-            section.template#lap_panel.lap_view
+            section.template#lap_panel.panel
                 h3.course_name
                 h2.marker
                     span.lap_name 総合
@@ -113,7 +113,8 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
                         span.delta +12:32
 
             #panel_positioner.d-none 
-            section#lap_time.view.summary.d-none
+
+            section#lap_time.panel.summary.d-none
                 h3.course_name 
                 h2.marker-lap_time タイム
                 #lap_time_chart(style="display: grid; \
@@ -138,7 +139,7 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
                         img(src='assets/icon/run.png')
                     .dummy
 
-            section#lap_score.view.summary.d-none
+            section#lap_score.panel.summary.d-none
                 h3.course_name 
                 h2.marker-lap_time 
                     | スコア
