@@ -98,9 +98,9 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
             #course_summary
 
         #view
-            section.view.bg-record#view_record
+            section.template#lap_panel.lap_view
                 h3.course_name
-                h2.marker-record 
+                h2.marker
                     span.lap_name 総合
                     span.distance
                 .chart
@@ -112,33 +112,7 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
                         span.time 00:12:32
                         span.delta +12:32
 
-            section.view.bg-swim#view_swim
-                h3.course_name
-                h2.marker-swim スイム
-                    img.icon_in_text(src='assets/icon/swim.png')
-                    span.distance
-                .chart
-                    canvas
-                ul.ranking 
-
-            section.view.bg-bike#view_bike
-                h3.course_name
-                h2.marker-bike バイク
-                    img.icon_in_text(src='assets/icon/bike.png')
-                    span.distance
-                .chart
-                    canvas
-                ul.ranking 
-
-            section.view.bg-run#view_run
-                h3.course_name
-                h2.marker-run ラン
-                    img.icon_in_text(src='assets/icon/run.png')
-                    span.distance
-                .chart
-                    canvas
-                ul.ranking
-
+            #panel_positioner.d-none 
             section#lap_time.view.summary.d-none
                 h3.course_name 
                 h2.marker-lap_time タイム

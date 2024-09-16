@@ -136,7 +136,7 @@ const draw_summaries = () => {
  * @param {'swim'|'bike'|'run'|'record'} lap 
  */
 const clear_ranking = lap => {
-	document.querySelector(`#view_${lap} ul.ranking`).textContent = '';
+	g[lap].panel.querySelector('ul.ranking').textContent = '';
 };
 
 /**
@@ -223,7 +223,7 @@ const draw_lap_time_summary = (root, template) => {
 		return sum / count;
 	}))();
 	// current_time のうち一番小さい数値（または代替タイム）を 1fr にする
-	const base_width = sub_laps.reduce((a, k) => Math.min(a, current_time[k]), base_time);
+	const base_width = Math.min(...Object.values(current_time).filter(x => x).concat(base_time));
 	root.style.gridTemplateColumns = ['auto', ...sub_laps.map(k => (current_time[k] || base_time) / base_width + 'fr'), '0.5fr'].join(' 1px ');
 	// 出力例: auto 1px 1fr 1px 1.5fr 1px 1.3fr 1px 0.5fr;
 };
@@ -283,7 +283,7 @@ const summary_drawer = [
  */
 const draw_member_ranking = (lap) => {
 	let front = null;
-	const parent = document.querySelector(`#view_${lap} ul.ranking`);
+	const parent = g[lap].panel.querySelector('ul.ranking');
 
 	g.member_data
 		.map((x, i) => ({ color: color_pallets.indexOf(i), display: x.display_name, time: x[lap + '_sec'] }))
@@ -560,7 +560,25 @@ const update_all_member_stats = () => {
 window.addEventListener('load', () => {
 	templater.init(document);
 
-	laps.forEach(lap => g[lap].context = document.querySelector(`#view_${lap} canvas`))
+	{
+		const parent = document.querySelector('#view');
+		const position = document.querySelector('#panel_positioner');
+
+		const lap_names = {
+			record: '総合',
+			swim: 'スイム',
+			bike: 'バイク',
+			run: 'ラン',
+		};
+		laps.forEach(lap => {
+			const panel = templater.generate('lap_panel', { '.lap_name': lap_names[lap] });
+			panel.classList.add(lap);
+
+			g[lap].panel = panel;
+			g[lap].context = panel.querySelector(`canvas`);
+			parent.insertBefore(panel, position);
+		});
+	}
 
 	{
 		// Groupフィルタ
@@ -655,19 +673,10 @@ window.addEventListener('load', () => {
 			g.member_data.map(d => generate_member_list_element(d, 'remove'))
 				.forEach(elem => active_member_list_element.appendChild(elem));
 
-			// 各Viewにレース名をいれる（薄字のやつ）
-			Array.from(document.querySelectorAll('.course_name')).forEach(elem => elem.textContent = g.course.name);
+				
 
 			{
-				// 種目別ビューの距離をいれる
-				sub_laps.forEach(x => document.querySelector(`#view_${x} .distance`).textContent = g.course.distance[x] + ' km');
-
-				// 総合は距離の代わりに、ディタンスカテゴリ
-				document.querySelector('#view_record .distance').textContent = g.course.category;
-			}
-
-			{
-				// レース情報
+				// ヘッダー情報としてレース情報を格納する
 				document.querySelector('title').textContent = `${g.course.name} :: Trist`;
 
 				const course_summary = document.querySelector('#course_summary');
@@ -680,7 +689,18 @@ window.addEventListener('load', () => {
 					const p = document.createElement('p');
 					p.textContent = text;
 					course_summary.appendChild(p);
-				})
+				});
+			}
+
+			// 各Panelにレース名をいれる（薄字のやつ）
+			Array.from(document.querySelectorAll('.course_name')).forEach(elem => elem.textContent = g.course.name);
+
+			{
+				// 種目別ビューの距離をいれる
+				sub_laps.forEach(lap => g[lap].panel.querySelector(`.distance`).textContent = g.course.distance[lap] + ' km');
+
+				// 総合は距離の代わりに、ディタンスカテゴリ
+				g.record.panel.querySelector('.distance').textContent = g.course.category;
 			}
 
 			document.querySelector('#share-x-link')

@@ -45,22 +45,22 @@ img.emoji {
 	--run-high-color: hsl(134deg 48% 45%);
 }
 
-.marker-record {
+.record .marker {
 	background: linear-gradient(transparent 65%, var(--record-color) 65%, var(--record-color) 100%);
 	width: fit-content;
 }
 
-.marker-swim {
+.swim .marker {
 	background: linear-gradient(transparent 65%, var(--swim-color) 65%, var(--swim-color) 100%);
 	width: fit-content;
 }
 
-.marker-bike {
+.bike .marker {
 	background: linear-gradient(transparent 65%, var(--bike-color) 65%, var(--bike-color) 100%);
 	width: fit-content;
 }
 
-.marker-run {
+.run .marker {
 	background: linear-gradient(transparent 65%, var(--run-color) 65%, var(--run-color) 100%);
 	width: fit-content;
 }
@@ -130,7 +130,8 @@ header {
 	}
 }
 
-section.view {
+
+section.view, .lap_view {
 	margin: 1em;
 	padding: 1em;
 	border-radius: 1em;
