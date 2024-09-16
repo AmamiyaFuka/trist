@@ -105,12 +105,31 @@ const ishigaki_2023 = {
 			run: 10,
 		},
 		locale: '日本, 沖縄県',
-		url: 'https://ishigaki-triathlon.jp/%e7%9f%b3%e5%9e%a3%e5%b3%b6%e3%83%88%e3%83%a9%e3%82%a4%e3%82%a2%e3%82%b9%e3%83%ad%e3%83%b32023%e7%ab%b6%e6%8a%80%e7%b5%82%e4%ba%86%e3%81%ae%e3%81%8a%e3%81%97%e3%82%89%e3%81%9b/',
+		url: 'https://www.jtu.or.jp/news/2023/04/11/49661/',
 	},
 	result_id: '172_1', output_file: 'ishigaki_2023'
 };
 
-const target = ishigaki_2023;
+const world_2023_yokohama = {
+	course: {
+		name: 'ワールドトライアスロンシリーズ （2023/横浜）エイジグループ',
+		short_name: 'ワールドS(横浜/std)',
+		starttime: new Date('2023-05-11T08:00' + '+09:00').getTime(),
+		weather: '晴れ',
+		distance: {
+			swim: 1.5,
+			bike: 40,
+			run: 10,
+		},
+		locale: '日本, 神奈川県',
+		url: 'https://www.jtu.or.jp/news/2023/05/11/50081/',
+	},
+	result_id: '176_2', output_file: 'world_2023_yokohama'
+};
+
+
+
+const target = world_2023_yokohama;
 
 Promise.all([
 	Course.get(target.course),
