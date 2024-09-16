@@ -1,6 +1,6 @@
 import race_list from '../assets/list.json' with { type: 'json' };
 
-import BootstrapTemplate from './element_template.mjs';
+import BootstrapTemplate from './bootstrap_template.mjs';
 import ColorPallets from './color_pallets.mjs';
 
 const color_pallets = new ColorPallets();
@@ -20,12 +20,6 @@ const all_laps = Object.values(lap_enum);
 
 /** @type {Array<Lap>} */
 const sub_laps = [lap_enum.swim, lap_enum.bike, lap_enum.run];
-
-/**
- * @type {Object} key
- * @property {string} key
- */
-const m = {};
 
 /**
  * @typedef LapPointData
@@ -100,7 +94,6 @@ const m = {};
  * @property {LapResultContext} swim
  * @property {LapResultContext} bike
  * @property {LapResultContext} run 
- * 
  */
 
 /** @type {GlobalVars} */
