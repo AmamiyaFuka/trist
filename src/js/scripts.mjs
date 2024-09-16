@@ -64,20 +64,19 @@ const update_search_string = () => {
 		query: '',
 		x: {
 			text: 'Trist',
-			url: 'https://trist.amamiya-studio.com',
 		}
 	} : {
 		query: `?race=${g.race}&members=${data_manager.member_data.map(x => x.number).join(',')}`,
 		x: {
 			text: g.course.name + 'のリザルト',
-			url: window.location.href,
 		}
 	};
 
 	window.history.replaceState(null, '', query);
 
+	const url = 'https://trist.amamiya-studio.com/' + query;
 	// Xシェアリンクを更新
-	document.querySelector('#share-x-link').setAttribute('href', `https://x.com/intent/tweet?text=${encodeURIComponent(x.text)}&url=${encodeURIComponent(x.url)}`);
+	document.querySelector('#share-x-link').setAttribute('href', `https://x.com/intent/tweet?text=${encodeURIComponent(x.text)}&url=${encodeURIComponent(url)}`);
 };
 
 /**
@@ -328,7 +327,7 @@ const draw = (lap) => {
 			pointRadius: 0,
 			pointHitRadius: 0,
 			data: data_manager.time_ranking_data[lap].stats.density,
-			parsing: { xAxisKey: 'x', yAxisKey: 'count' },
+			parsing: { xAxisKey: 'time', yAxisKey: 'count' },
 			order: 1001,
 			yAxisID: 'y_density',
 			backgroundColor: 'hsla(214, 40%, 90%, 0.45)',
