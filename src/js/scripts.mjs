@@ -1,7 +1,4 @@
-import list_json from '../assets/list.json' with { type: 'json' };
-
-/** @type {Array<{race: string, label: string, course: Course}>} */
-const race_list = list_json;
+import race_list from '../assets/list.json' with { type: 'json' };
 
 import BootstrapTemplate from './element_template.mjs';
 import ColorPallets from './color_pallets.mjs';
