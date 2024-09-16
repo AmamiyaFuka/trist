@@ -1,33 +1,6 @@
-class ColorPallets {
-	#pallets = [
-		'#36a2eb',
-		'#ff6384',
-		'#4bc0c0',
-		'#ff9f40',
-		'#9966ff',
-		'#ffcd56',
-		'#c9cbcf',
-	];
-	#index = 0;
-	constructor() { };
+import race_list from '/assets/list.json' with { type: 'json' };
 
-	new() {
-		return this.#pallets[this.#index = (this.#index + 1) % this.#pallets.length];
-	};
-
-	all() {
-		return this.#pallets;
-	};
-
-	indexOf(i) {
-		return this.#pallets[i % this.#pallets.length];
-	};
-
-	swim(alpha) { return `hsla(198, 82%, 75%, ${alpha ?? '0'})`; };
-	bike(alpha) { return `hsla(0, 69%, 100%, ${alpha ?? '0'})`; };
-	run(alpha) { return `hsla(134, 46%, 80%, ${alpha ?? '0'})`; };
-	record(alpha) { return `hsla(43, 41%, 100%, ${alpha ?? '0'})`; };
-};
+import ColorPallets from './color_pallets.mjs';
 
 const color_pallets = new ColorPallets();
 
@@ -781,51 +754,49 @@ window.addEventListener('load', () => {
 		})
 		.then(() => draw_all());
 
-	//レースリスト
-	fetch('assets/list.json')
-		.then(res => res.json())
-		.then(json => {
-			const container = document.querySelector('#race_list');
-			container.textContent = '';
+	{
+		// レースリスト		
+		const container = document.querySelector('#race_list');
+		container.textContent = '';
 
-			const item_template = document.querySelector('#race_list_item_template');
-			const divider_template = document.querySelector('#race_list_divider_template');
+		const item_template = document.querySelector('#race_list_item_template');
+		const divider_template = document.querySelector('#race_list_divider_template');
 
-			const group_by_year = json.reduce((a, b) => {
-				const y = new Date(b.course.starttime).getFullYear();
-				if (!(y in a)) a[y] = [];
+		const group_by_year = race_list.reduce((a, b) => {
+			const y = new Date(b.course.starttime).getFullYear();
+			if (!(y in a)) a[y] = [];
 
-				a[y].push(b);
-				return a;
-			}, {});
-			
-			Object.keys(group_by_year).sort((a, b) => b - a).forEach(year => {
-				const races = group_by_year[year];
+			a[y].push(b);
+			return a;
+		}, {});
 
-				const divider = divider_template.cloneNode(true);
-				divider.removeAttribute('id');
-				divider.classList.remove('d-none');
-				divider.querySelector('.year_value').textContent = year;
-				container.appendChild(divider);
+		Object.keys(group_by_year).sort((a, b) => b - a).forEach(year => {
+			const races = group_by_year[year];
 
-				races.forEach(({ race, label }) => {
-					const item = item_template.cloneNode(true);
-					item.removeAttribute('id');
-					item.classList.remove('d-none');
+			const divider = divider_template.cloneNode(true);
+			divider.removeAttribute('id');
+			divider.classList.remove('d-none');
+			divider.querySelector('.year_value').textContent = year;
+			container.appendChild(divider);
 
-					item.textContent = label;
-					item.setAttribute('href', '?race=' + race);
+			races.forEach(({ race, label }) => {
+				const item = item_template.cloneNode(true);
+				item.removeAttribute('id');
+				item.classList.remove('d-none');
 
-					if (g.race === race) {
-						item.classList.remove('btn-outline-dark');
-						item.classList.add('btn-dark');
-						item.classList.add('disabled');
-					}
+				item.textContent = label;
+				item.setAttribute('href', '?race=' + race);
 
-					container.appendChild(item);
-				});
+				if (g.race === race) {
+					item.classList.remove('btn-outline-dark');
+					item.classList.add('btn-dark');
+					item.classList.add('disabled');
+				}
+
+				container.appendChild(item);
 			});
 		});
+	}
 
 	// メンバー追加処理
 	document.querySelector('#new_member_input').addEventListener('input', event => {
