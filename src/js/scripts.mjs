@@ -89,7 +89,6 @@ const m = {};
 
 /**
  * @typedef GlobalVars
- * @property {string} race_file
  * @property {string} race レースID, fuji2024など
  * @property {Array<PersonResult>} data
  * @property {Array<PersonResultWithStats>} member_data
@@ -101,14 +100,12 @@ const m = {};
  * @property {LapResultContext} swim
  * @property {LapResultContext} bike
  * @property {LapResultContext} run 
- * @property {Array<string>} member_ids
  * 
  */
 
 /** @type {GlobalVars} */
 const g = {
-	race_file: 'assets/result/sample.json',
-	race: '',
+	race: 'sample',
 	data: [],
 	member_data: [],
 	member_chart_data: [],
@@ -119,40 +116,31 @@ const g = {
 	swim: {},
 	bike: {},
 	run: {},
-	member_ids: [],
 };
 
 /**
  * 現在の表示状態をsearch文字列に反映させる
  */
 const update_search_string = () => {
-	const race = g.race_file.match(/\/?assets\/result\/(.*?)\.json/)[1];
-	window.history.replaceState(null, '', `?race=${race}&members=${g.member_data.map(x => x.number).join(',')}`);
+	const { query, x } = g.race === 'sample' ? {
+		query: '',
+		x: {
+			text: 'Trist',
+			url: 'https://trist.amamiya-studio.com',
+		}
+	} : {
+		query: `?race=${g.race}&members=${g.member_data.map(x => x.number).join(',')}`,
+		x: {
+			text: g.course.name + 'のリザルト',
+			url: window.location.href,
+		}
+	};
+
+	window.history.replaceState(null, '', query);
 
 	// Xシェアリンクを更新
-	document.querySelector('#share-x-link').setAttribute('href', `https://x.com/intent/tweet?text=${encodeURIComponent(g.course.name + 'のリザルト')}&url=${encodeURIComponent(window.location.href)}`);
+	document.querySelector('#share-x-link').setAttribute('href', `https://x.com/intent/tweet?text=${encodeURIComponent(x.text)}&url=${encodeURIComponent(x.url)}`);
 };
-
-
-/**
- * search文字列から、表示に関わるパラメータを抽出する
- */
-{
-	const query = window.location.search.substring(1).split('&');
-
-	/** @type {Object.<string, string>} */
-	const r = Object.fromEntries(['race', 'members'].map(k => {
-		const v = query.find(q => q.startsWith(k));
-		return v ? [k, v.split('=')[1]] : [k];
-	}));
-
-	// パラメータから必要なものをグローバル変数に格納
-	if (r.race) {
-		g.race_file = `assets/result/${r.race}.json`;
-		g.race = r.race;
-	}
-	if (r.members) g.member_ids = r.members.split(',');
-}
 
 /**
  * 秒数をHH:mm:ss表記にする
@@ -627,6 +615,25 @@ const update_all_member_stats = () => {
 window.addEventListener('load', () => {
 	templater.init(document);
 
+	/** @type {Array<string>} */
+	let initial_member_ids;
+	{
+		/**
+		 * search文字列から、表示に関わるパラメータを抽出する
+		 */
+		const query = window.location.search.substring(1).split('&');
+
+		/** @type {Object.<string, string>} */
+		const r = Object.fromEntries(['race', 'members'].map(k => {
+			const v = query.find(q => q.startsWith(k));
+			return v ? [k, v.split('=')[1]] : [k];
+		}));
+
+		// パラメータから必要なものをグローバル変数に格納
+		g.race = r.race ?? 'sample';
+		initial_member_ids = r.members?.split(',') ?? [];
+	}
+
 	{
 		const parent = document.querySelector('#view');
 		const position = document.querySelector('#panel_positioner');
@@ -723,14 +730,13 @@ window.addEventListener('load', () => {
 	};
 
 
-	fetch(g.race_file)
+	fetch(`assets/result/${g.race}.json`)
 		.then(res => res.json())
 		.then(json => {
 			g.course = json.course;
 			g.data = json.result;
 
-			g.member_data = g.data.filter(x => g.member_ids.includes(x.number));
-			delete g.member_ids;
+			g.member_data = g.data.filter(x => initial_member_ids.includes(x.number));
 
 			update_target_data(g.data);
 
