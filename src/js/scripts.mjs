@@ -1,4 +1,7 @@
-import race_list from '/assets/list.json' with { type: 'json' };
+import list_json from '/assets/list.json' with { type: 'json' };
+
+/** @type {Array<{race: string, label: string, course: Course}} */
+const race_list = list_json;
 
 import BootstrapTemplate from './element_template.mjs';
 import ColorPallets from './color_pallets.mjs';
@@ -7,39 +10,106 @@ const color_pallets = new ColorPallets();
 
 const templater = new BootstrapTemplate();
 
-const laps = ['record', 'swim', 'bike', 'run'];
-const sub_laps = ['swim', 'bike', 'run'];
+/** @typedef {'record'|'swim'|'bike'|'run'} Lap */
 
 /**
- * 
- * data: [],
- * 	data.
- * target: filted data,
+ * @readonly
+ * @enum {Lap}
  */
+const lap_enum = { record: 'record', swim: 'swim', bike: 'bike', run: 'run' };
+
+/** @type {Array<Lap>} */
+const all_laps = Object.values(lap_enum);
+
+/** @type {Array<Lap>} */
+const sub_laps = [lap_enum.swim, lap_enum.bike, lap_enum.run];
+
+/**
+ * @type {Object} key
+ * @property {string} key
+ */
+const m = {};
+
+/**
+ * @typedef LapPointData
+ * @property {number} x
+ * @property {number?} record
+ * @property {number?} swim
+ * @property {number?} bike
+ * @property {number?} run
+ */
+
+/**
+ * @typedef Point
+ * @property {number} x
+ * @property {number} y
+ */
+
+/**
+ * @typedef PersonChartData
+ * @property {Point} record
+ * @property {Point} swim
+ * @property {Point} bike
+ * @property {Point} run
+ */
+
+/**
+ * @typedef LapResultContext
+ * @property {Element} panel
+ * @property {Chart} chart
+ * @property {DataStats} stats
+ * @property {HTMLCanvasElement} context
+ */
+
+/** 
+ * @typedef DataStats
+ * @property {boolean} valid
+ * @property {number} count
+ * @property {Array<number>} sorted_times
+ * @property {{min: number, max: number}} time
+ * @property {number} average 平均
+ * @property {number} variance 分散
+ * @property {number} stdev 標準偏差
+ */
+
+/**
+ * @typedef GlobalVars
+ * @property {string} race_file
+ * @property {string} race レースID, fuji2024など
+ * @property {Array<PersonResult>} data
+ * @property {Array<PersonResult>} member_data
+ * @property {Array<PersonChartData>} member_chart_data
+ * @property {Array<LapPointData>} density_data
+ * @property {Array<LapPointData>} chart_data
+ * @property {Course} course
+ * @property {LapResultContext} record
+ * @property {LapResultContext} swim
+ * @property {LapResultContext} bike
+ * @property {LapResultContext} run 
+ * @property {Array<string>} member_ids
+ * 
+ */
+
+/** @type {GlobalVars} */
 const g = {
 	race_file: 'assets/result/sample.json',
+	race: '',
 	data: [],
-	target: [],
-	member_ids: [],
 	member_data: [],
-	swim: {
-		chart: undefined,
-		context: undefined,
-	},
-	bike: {
-		chart: undefined,
-		context: undefined,
-	},
-	run: {
-		chart: undefined,
-		context: undefined,
-	},
-	record: {
-		chart: undefined,
-		context: undefined,
-	},
+	member_chart_data: [],
+	density_data: [],
+	chart_data: [],
+	course,
+	record: {},
+	swim: {},
+	bike: {},
+	run: {},
+	member_ids: [],
 };
 
+/**
+ * 現在の表示状態をsearch文字列に反映させる
+ */
 const update_search_string = () => {
 	const race = g.race_file.match(/\/?assets\/result\/(.*?)\.json/)[1];
 	window.history.replaceState(null, null, `?race=${race}&members=${g.member_data.map(x => x.number).join(',')}`);
@@ -55,6 +125,7 @@ const update_search_string = () => {
 {
 	const query = window.location.search.substring(1).split('&');
 
+	/** @type {Object.<string, string>} */
 	const r = Object.fromEntries(['race', 'members'].map(k => {
 		const v = query.find(q => q.startsWith(k));
 		return v ? [k, v.split('=')[1]] : [k];
@@ -101,6 +172,10 @@ const sec_to_mss_with_sign = sec => {
 	return `${sign}${m}:${('00' + s).slice(-2)}`;
 };
 
+
+/**
+ * サマリーパネルを再描画する
+ */
 const draw_summaries = () => {
 	{
 		//ラップタイムサマリー
@@ -131,40 +206,14 @@ const draw_summaries = () => {
 };
 
 /**
- * 各ラップカードのランキング内容をクリアする
- * 特にチャートやランキングの再構築前に必要となる
- * @param {'swim'|'bike'|'run'|'record'} lap 
- */
-const clear_ranking = lap => {
-	g[lap].panel.querySelector('ul.ranking').textContent = '';
-};
-
-/**
- * 各ラップカードのチャートの内容をクリアする
- * 特にチャートやランキングの再構築前に必要となる
- * @param {'swim'|'bike'|'run'|'record'} lap 
- */
-const clear = lap => {
-	if (g[lap].chart) g[lap].chart.destroy();
-	g[lap].chart = null;
-};
-
-/**
- * すべてのラップカードの内容をクリアする
- */
-const clear_all = () => {
-	laps.forEach(lap => clear(lap));
-};
-
-/**
- * すべてのラップカードのチャート、ランキングを描画する
+ * すべてのラップパネルのチャート、ランキングと、サマリーパネルを描画する
  */
 const draw_all = () => {
-	laps.forEach(x => {
-		draw(x);
-		clear_ranking(x);
-		draw_member_ranking(x);
-	});
+	all_laps
+		.forEach(x => {
+			draw(x);
+			draw_member_ranking(x);
+		});
 
 	draw_summaries();
 };
@@ -272,16 +321,15 @@ const draw_lap_score_summary = (root, template) => {
 		});
 };
 
-const summary_drawer = [
-	draw_lap_time_summary,
-	draw_lap_score_summary,
-];
 
 /**
  * ランキング要素を描画する
- * @param {'swim'|'bike'|'run'|'record'} lap 
+ * @param {Lap} lap 
  */
 const draw_member_ranking = (lap) => {
+	// 一度、内容を全て消去する
+	g[lap].panel.querySelector('ul.ranking').textContent = '';
+
 	let front = null;
 	const parent = g[lap].panel.querySelector('ul.ranking');
 
@@ -306,10 +354,13 @@ const draw_member_ranking = (lap) => {
 
 /**
  * チャートを描画する
- * @param {'swim'|'bike'|'run'|'record'} lap 
+ * @param {Lap} lap 
  */
 const draw = (lap) => {
-	clear(lap);
+	// 既に描画されている場合は消去する
+	if (g[lap].chart) g[lap].chart.destroy();
+	g[lap].chart = null;
+
 	const time_step_sec = 600;
 
 	const stats = g[lap].stats;
@@ -436,13 +487,11 @@ const draw = (lap) => {
 };
 
 /**
- * 
- * @param {Array<PersonResult} target 
+ * 表示する母集団を設定する
+ * @param {Array<PersonResult>} target 
  */
 const update_target_data = target => {
-	g.target = target; // この代入は不要だがデバッグ用にまだおいとく
-
-	laps.forEach(lap => {
+	all_laps.forEach(lap => {
 		const k = lap + '_sec';
 
 		const sorted_times = target.map(x => x[k]).filter(x => x).sort((a, b) => a - b);
@@ -474,8 +523,8 @@ const update_target_data = target => {
 	});
 
 	// 全レコードのデータをまとめる
-	const time_min = Math.min(...laps.filter(lap => g[lap]?.stats?.valid).map(lap => g[lap].stats.time.min));
-	const time_max = Math.max(...laps.filter(lap => g[lap]?.stats?.valid).map(lap => g[lap].stats.time.max));
+	const time_min = Math.min(...all_laps.filter(lap => g[lap]?.stats?.valid).map(lap => g[lap].stats.time.min));
+	const time_max = Math.max(...all_laps.filter(lap => g[lap]?.stats?.valid).map(lap => g[lap].stats.time.max));
 
 	if (!(isFinite(time_max) && isFinite(time_min))) {
 		g.chart_data = [];
@@ -489,23 +538,25 @@ const update_target_data = target => {
 		.map((_, i) => time_min + i)
 		.map(x => ({
 			x,
-			...Object.fromEntries(laps
-				.filter(lap => g[lap].stats.valid)
-				.map(lap => {
-					const v = g[lap].stats.sorted_times.findIndex(t => t > x);
-					return [lap, v > 0 ? v : undefined];
-				})),
+			...Object.fromEntries(
+				all_laps
+					.filter(lap => g[lap].stats.valid)
+					.map(lap => {
+						const v = g[lap].stats.sorted_times.findIndex(t => t > x);
+						return [lap, v > 0 ? v : undefined];
+					})),
 		}));
 
 	const density_sampling = Math.min(80, g.chart_data.length);
 	const density_step = Math.floor(g.chart_data.length / density_sampling);
+
 	g.density_data = Array(density_sampling).fill(0)
 		.map((_, i) => {
 			const src = Math.max(0, (i - 1) * density_step);
 			const dst = Math.min(g.chart_data.length - 1, i * density_step);
 			return {
 				x: i * density_step + time_min,
-				...Object.fromEntries(laps.map(lap => [lap, g.chart_data[dst][lap] - g.chart_data[src][lap] || undefined])),
+				...Object.fromEntries(all_laps.map(lap => [lap, g.chart_data[dst][lap] - g.chart_data[src][lap] || undefined])),
 			};
 		});
 
@@ -515,14 +566,14 @@ const update_target_data = target => {
 };
 
 /**
- * 
+ * 個人のレース結果から、ポイントするチャート描画用のデータを作成する
  * @param {PersonResult} member_data 
  * @returns {PersonChartData}
  */
 const generate_member_chart_data = member_data => {
 	return Object.fromEntries([
 		['tag', member_data],
-		...laps.map(lap => {
+		...all_laps.map(lap => {
 			const lap_x = member_data[lap + '_sec'];
 			const lap_y = g.chart_data[lap_x - g.chart_data[0]?.x]?.[lap];
 			return [lap, { x: lap_x, y: lap_y }];
@@ -532,7 +583,7 @@ const generate_member_chart_data = member_data => {
 /**
  * メンバーの統計データを再計算する
  * @param {PersonResult} member 
- * @param {'record' | 'swim' | 'bike' | 'run'} lap 
+ * @param {Lap} lap 
  */
 const update_member_stats = (member, lap) => {
 	if (!('stats' in member)) member.stats = {};
@@ -553,8 +604,9 @@ const update_member_stats = (member, lap) => {
 	}
 };
 
+
 const update_all_member_stats = () => {
-	g.member_data.forEach(member => laps.forEach(lap => update_member_stats(member, lap)));
+	g.member_data.forEach(member => all_laps.forEach(lap => update_member_stats(member, lap)));
 };
 
 window.addEventListener('load', () => {
@@ -570,7 +622,7 @@ window.addEventListener('load', () => {
 			bike: 'バイク',
 			run: 'ラン',
 		};
-		laps.forEach(lap => {
+		all_laps.forEach(lap => {
 			const panel = templater.generate('lap_panel', { '.lap_name': lap_names[lap] });
 			panel.classList.add(lap);
 
@@ -627,7 +679,7 @@ window.addEventListener('load', () => {
 				new_member_list_element.removeChild(elem);
 				active_member_list_element.appendChild(elem);
 
-				laps.forEach(lap => update_member_stats(member_data, lap));
+				all_laps.forEach(lap => update_member_stats(member_data, lap));
 
 				g.member_data.push(member_data);
 				g.member_chart_data.push(generate_member_chart_data(member_data));
@@ -642,10 +694,8 @@ window.addEventListener('load', () => {
 			}
 
 			// 関係する要素の再描画処理
-			laps.forEach(lap => {
+			all_laps.forEach(lap => {
 				g[lap]?.chart?.update();
-
-				clear_ranking(lap);
 				draw_member_ranking(lap);
 			});
 
@@ -673,7 +723,6 @@ window.addEventListener('load', () => {
 			g.member_data.map(d => generate_member_list_element(d, 'remove'))
 				.forEach(elem => active_member_list_element.appendChild(elem));
 
-				
 
 			{
 				// ヘッダー情報としてレース情報を格納する
@@ -684,7 +733,7 @@ window.addEventListener('load', () => {
 					`${new Date(g.course.starttime).toLocaleString('ja-JP')} スタート`,
 					`場所：${g.course.locale} ${g.course.weather}`,
 					`${g.course.category} distance`,
-					`swim ${g.course.distance.swim} km, bike ${g.course.distance.bike} km, run ${g.course.distance.run} km`,
+					sub_laps.map(lap => `${lap} ${g.course.distance[lap]} km`).join(', '),
 				].forEach(text => {
 					const p = document.createElement('p');
 					p.textContent = text;
@@ -741,6 +790,7 @@ window.addEventListener('load', () => {
 		const item_template = document.querySelector('#race_list_item_template');
 		const divider_template = document.querySelector('#race_list_divider_template');
 
+		/** @type {Object.<string, Array<{race: string, label: string, course: Course}>>} */
 		const group_by_year = race_list.reduce((a, b) => {
 			const y = new Date(b.course.starttime).getFullYear();
 			if (!(y in a)) a[y] = [];
@@ -752,6 +802,7 @@ window.addEventListener('load', () => {
 		Object.keys(group_by_year).sort((a, b) => b - a).forEach(year => {
 			const races = group_by_year[year];
 
+			/** @type {Element} */
 			const divider = divider_template.cloneNode(true);
 			divider.removeAttribute('id');
 			divider.classList.remove('d-none');
