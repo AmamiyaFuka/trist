@@ -36,7 +36,7 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
 
         script(src='https://cdn.jsdelivr.net/npm/chart.js')
         script(src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js')
-        script(src='js/scripts.mjs?' + now)
+        script(src='js/scripts.mjs?' + now type='module')
 
     body(style='background-image: url("assets/bg_body.png");')
         header.d-flex.flex-row-reverse.flex-wrap.justify-content-between(style='background-image: url("assets/trist_logo.png"); \
@@ -100,11 +100,17 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
         #view
             section.view.bg-record#view_record
                 h3.course_name
-                h2.marker-record 総合
+                h2.marker-record 
+                    span.lap_name 総合
                     span.distance
                 .chart
                     canvas
                 ul.ranking 
+                    li.template#ranking_item 
+                        span.circle 
+                        span.display_name Name
+                        span.time 00:12:32
+                        span.delta +12:32
 
             section.view.bg-swim#view_swim
                 h3.course_name

@@ -1,8 +1,11 @@
 import race_list from '/assets/list.json' with { type: 'json' };
 
+import BootstrapTemplate from './element_template.mjs';
 import ColorPallets from './color_pallets.mjs';
 
 const color_pallets = new ColorPallets();
+
+const templater = new BootstrapTemplate();
 
 const laps = ['record', 'swim', 'bike', 'run'];
 const sub_laps = ['swim', 'bike', 'run'];
@@ -275,37 +278,6 @@ const summary_drawer = [
 ];
 
 /**
- * 
- * @param {ParsedElement} arg 
- * @returns {Element}
- */
-const generate_element = arg => {
-	const elem = document.createElement(arg.tag);
-
-	if ('text' in arg) {
-		elem.appendChild(document.createTextNode(arg.text));
-	}
-
-	if ('child' in arg) {
-		arg.child.forEach(x => elem.appendChild(generate_element(x)));
-	}
-
-	if ('class' in arg) {
-		arg.class.split(' ').forEach(x => elem.classList.add(x));
-	}
-
-	if ('style' in arg) {
-		Object.keys(arg.style).forEach(x => elem.style[x] = arg.style[x]);
-	}
-
-	if ('attributes' in arg) {
-		Object.keys(arg.attributes).forEach(x => elem.setAttribute(x, arg.attributes[x]));
-	}
-
-	return elem;
-};
-
-/**
  * ランキング要素を描画する
  * @param {'swim'|'bike'|'run'|'record'} lap 
  */
@@ -320,30 +292,15 @@ const draw_member_ranking = (lap) => {
 			const d = x.time - front;
 			const delta = (front && !isNaN(d)) ? sec_to_mss_with_sign(x.time - front, true) : '';
 			if (!isNaN(d)) front = x.time;
-			return {
-				tag: 'li',
-				child: [{
-					tag: 'span',
-					class: 'circle',
-					style: {
-						'background-color': x.color,
-					},
-				}, {
-					tag: 'span',
-					class: 'display_name',
-					text: x.display,
-				}, {
-					tag: 'span',
-					class: 'time',
-					text: x.time ? sec_to_hhmmss(x.time) : 'No data',
-				}, {
-					tag: 'span',
-					class: 'delta',
-					text: delta,
-				}],
-			};
+
+			const item = templater.generate('ranking_item', {
+				'.display_name': x.display,
+				'.time': x.time ? sec_to_hhmmss(x.time) : 'No data',
+				'.delta': delta,
+			});
+			item.querySelector('.circle').style.backgroundColor = x.color;
+			return item;
 		})
-		.map(x => generate_element(x))
 		.forEach(x => parent.appendChild(x));
 };
 
@@ -601,6 +558,8 @@ const update_all_member_stats = () => {
 };
 
 window.addEventListener('load', () => {
+	templater.init(document);
+
 	laps.forEach(lap => g[lap].context = document.querySelector(`#view_${lap} canvas`))
 
 	{
