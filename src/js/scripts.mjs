@@ -1,11 +1,13 @@
 import race_list from '../assets/list.json' with { type: 'json' };
 
 import BootstrapTemplate from './bootstrap_template.mjs';
-import ColorPallets from './color_pallets.mjs';
+const templater = new BootstrapTemplate();
 
+import ColorPallets from './color_pallets.mjs';
 const color_pallets = new ColorPallets();
 
-const templater = new BootstrapTemplate();
+import DataManagerTri from './data_manager.mjs';
+
 
 /** @typedef {'record'|'swim'|'bike'|'run'} Lap */
 
@@ -21,28 +23,9 @@ const all_laps = Object.values(lap_enum);
 /** @type {Array<Lap>} */
 const sub_laps = [lap_enum.swim, lap_enum.bike, lap_enum.run];
 
-/**
- * @typedef LapPointData
- * @property {number} x
- * @property {number?} record
- * @property {number?} swim
- * @property {number?} bike
- * @property {number?} run
- */
+const data_manager = new DataManagerTri(all_laps);
 
-/**
- * @typedef Point
- * @property {number} x
- * @property {number} y
- */
 
-/**
- * @typedef PersonChartData
- * @property {Point} record
- * @property {Point} swim
- * @property {Point} bike
- * @property {Point} run
- */
 
 /**
  * @typedef LapResultContext
@@ -52,43 +35,10 @@ const sub_laps = [lap_enum.swim, lap_enum.bike, lap_enum.run];
  * @property {HTMLCanvasElement} context
  */
 
-/** 
- * @typedef DataStats
- * @property {boolean} valid
- * @property {number} count
- * @property {Array<number>} sorted_times
- * @property {{min: number, max: number}} time
- * @property {number} average 平均
- * @property {number} variance 分散
- * @property {number} stdev 標準偏差
- */
-
-/**
- * @typedef PersonStatsItem
- * @property {number} score
- * @property {number} percentile
- */
-
-/**
- * @typedef PersonStats
- * @property {PersonStatsItem} record
- * @property {PersonStatsItem} swim
- * @property {PersonStatsItem} bike
- * @property {PersonStatsItem} run
- */
-
-/**
- * @typedef {PersonResult & PersonStats} PersonResultWithStats
- */
 
 /**
  * @typedef GlobalVars
  * @property {string} race レースID, fuji2024など
- * @property {Array<PersonResult>} data
- * @property {Array<PersonResultWithStats>} member_data
- * @property {Array<PersonChartData>} member_chart_data
- * @property {Array<LapPointData>} density_data
- * @property {Array<LapPointData>} chart_data
  * @property {Course} course
  * @property {LapResultContext} record
  * @property {LapResultContext} swim
@@ -99,11 +49,6 @@ const sub_laps = [lap_enum.swim, lap_enum.bike, lap_enum.run];
 /** @type {GlobalVars} */
 const g = {
 	race: 'sample',
-	data: [],
-	member_data: [],
-	member_chart_data: [],
-	density_data: [],
-	chart_data: [],
 	course: {},
 	record: {},
 	swim: {},
@@ -122,7 +67,7 @@ const update_search_string = () => {
 			url: 'https://trist.amamiya-studio.com',
 		}
 	} : {
-		query: `?race=${g.race}&members=${g.member_data.map(x => x.number).join(',')}`,
+		query: `?race=${g.race}&members=${data_manager.member_data.map(x => x.number).join(',')}`,
 		x: {
 			text: g.course.name + 'のリザルト',
 			url: window.location.href,
@@ -177,7 +122,7 @@ const draw_summaries = () => {
 		//ラップタイムサマリー
 		const root = document.querySelector('#lap_time_chart');
 		const template = document.querySelector('#lap_time_row');
-		if (g.member_data.length > 0) {
+		if (data_manager.member_data.length > 0) {
 			draw_lap_time_summary(root, template);
 
 			root.parentElement.classList.remove('d-none');
@@ -191,7 +136,7 @@ const draw_summaries = () => {
 		//ラップタイムスコア
 		const root = document.querySelector('#lap_score_chart');
 		const template = document.querySelector('#lap_score_row');
-		if (g.member_data.length > 0) {
+		if (data_manager.member_data.length > 0) {
 			draw_lap_score_summary(root, template);
 
 			root.parentElement.classList.remove('d-none');
@@ -226,25 +171,25 @@ const draw_lap_time_summary = (root, template) => {
 	// 比較値
 	const current_time = {};
 
-	g.member_data
-		.sort((a, b) => a.record_sec - b.record_sec)
+	data_manager.member_data
+		.sort((a, b) => a.stats.record.time - b.stats.record.time)
 		.forEach(member => {
 			const row = template.cloneNode(true);
 
 			row.querySelector('.name').textContent = member.display_name;
-			sub_laps.forEach(k => {
-				const v = member[k + '_sec'];
-
-				// 比較値が含まれている場合は、差分表示。いない場合は絶対値表示
-				const time = current_time[k] ? sec_to_mss_with_sign(v - current_time[k]) : sec_to_hhmmss(v);
-				// 比較値が含まれていない場合はセットする
-				current_time[k] ||= v;
+			sub_laps.forEach(lap => {
+				const v = member.stats?.[lap]?.time;
 
 				if (v) {
-					row.querySelector('.time.' + k).textContent = time;
-					row.querySelector('.stack_bar.' + k).style.width = Math.round(v * 100 / current_time[k]) + '%';
+					// 比較値が含まれている場合は、差分表示。いない場合は絶対値表示
+					const time = current_time[lap] ? sec_to_mss_with_sign(v - current_time[lap]) : sec_to_hhmmss(v);
+					// 比較値が含まれていない場合はセットする
+					current_time[lap] ||= v;
+
+					row.querySelector('.time.' + lap).textContent = time;
+					row.querySelector('.stack_bar.' + lap).style.width = Math.round(v * 100 / current_time[lap]) + '%';
 				} else {
-					row.querySelector('.stack_bar.' + k).style.color = 'gray';
+					row.querySelector('.stack_bar.' + lap).style.color = 'gray';
 				}
 			});
 
@@ -257,11 +202,11 @@ const draw_lap_time_summary = (root, template) => {
 	const base_time = ((() => {
 		let sum = 0;
 		let count = 0;
-		g.member_data.forEach(x => {
-			sub_laps.map(k => k + '_sec')
-				.filter(k => x[k])
-				.forEach(k => {
-					sum += x[k];
+		data_manager.member_data.forEach(member => {
+			sub_laps
+				.filter(lap => member.stats[lap].time)
+				.forEach(lap => {
+					sum += member.stats[lap].time;
 					count++;
 				});
 		})
@@ -284,8 +229,8 @@ const draw_lap_score_summary = (root, template) => {
 	const insert_position = root.querySelector('#lap_score_footer_start');
 	while (root.firstElementChild != insert_position) root.removeChild(root.firstElementChild);
 
-	g.member_data
-		.sort((a, b) => a.record_sec - b.record_sec)
+	data_manager.member_data
+		.sort((a, b) => a.stats.record.time - b.stats.record.time)
 		.forEach((member, i) => {
 			const row = template.cloneNode(true);
 
@@ -329,8 +274,8 @@ const draw_member_ranking = (lap) => {
 	let front = null;
 	const parent = g[lap].panel.querySelector('ul.ranking');
 
-	g.member_data
-		.map((x, i) => ({ color: color_pallets.indexOf(i), display: x.display_name, time: x[lap + '_sec'] }))
+	data_manager.member_data
+		.map((member, i) => ({ color: color_pallets.indexOf(i), display: member.display_name, time: member.stats[lap].time }))
 		.sort((a, b) => a.time - b.time)
 		.map(x => {
 			const d = x.time - front;
@@ -359,8 +304,8 @@ const draw = (lap) => {
 
 	const time_step_sec = 600;
 
-	const stats = g[lap].stats;
-	if (!stats.valid) return;
+	const stats = data_manager.time_ranking_data[lap].stats;
+	if (stats.count < 2) return;
 
 	const time_min = Math.floor(stats.time.min / time_step_sec) * time_step_sec;
 	const time_max = Math.ceil(stats.time.max / time_step_sec) * time_step_sec;
@@ -373,8 +318,8 @@ const draw = (lap) => {
 			tension: 0.05,
 			pointRadius: 0,
 			pointHitRadius: 0,
-			data: g.chart_data,
-			parsing: { xAxisKey: 'x', yAxisKey: lap },
+			data: data_manager.time_ranking_data[lap].data,
+			parsing: { xAxisKey: 'time', yAxisKey: 'count' },
 			// backgroundColor: 'rgb(000, 111, 222)',
 			order: 1000,
 		}, {
@@ -382,16 +327,16 @@ const draw = (lap) => {
 			showLine: false,
 			pointRadius: 0,
 			pointHitRadius: 0,
-			data: g.density_data,
-			parsing: { xAxisKey: 'x', yAxisKey: lap },
+			data: data_manager.time_ranking_data[lap].stats.density,
+			parsing: { xAxisKey: 'x', yAxisKey: 'count' },
 			order: 1001,
 			yAxisID: 'y_density',
 			backgroundColor: 'hsla(214, 40%, 90%, 0.45)',
 			fill: true,
 		}, {
 			showLine: false,
-			data: g.member_chart_data,
-			parsing: { xAxisKey: lap + '.x', yAxisKey: lap + '.y' },
+			data: data_manager.member_data,
+			parsing: { xAxisKey: `stats.${lap}.time`, yAxisKey: `stats.${lap}.ranking` },
 			order: 1,
 			pointRadius: 8,
 			pointHitRadius: 3,
@@ -450,21 +395,21 @@ const draw = (lap) => {
 					callbacks: {
 						title: () => '',
 						label: (item) => {
-							const d = item.raw.tag;
-							const time = sec_to_hhmmss(d[lap + '_sec']);
+							const d = item.raw;
+							const stats = item.raw.stats[lap];
+							const time = sec_to_hhmmss(stats.time);
 
-							const tips = [`${d.display_name} ${time}`, `${item.raw[lap].y}位`];
+							const tips = [`${d.display_name} ${time}`, `${stats.ranking}位`];
 
 							return tips.join(', ');
 						},
 						afterLabel: item => {
 							const tips = [];
-							const stats = item.raw.tag.stats[lap];
+							const stats = item.raw.stats[lap];
 
-							if (stats.valid) {
-								if (stats.percentile) tips.push(`上位${(stats.percentile * 100).toString().substring(0, 4)}%`);
-								if (stats.score) tips.push(`スコア ${stats.score.toString().substring(0, 2)}`);
-							}
+							if (!isNaN(stats.percentile)) tips.push(`上位${(stats.percentile * 100).toString().substring(0, 4)}%`);
+							if (!isNaN(stats.score)) tips.push(`スコア ${stats.score.toString().substring(0, 2)}`);
+
 
 							return tips.join(', ');
 						}
@@ -480,129 +425,6 @@ const draw = (lap) => {
 			aspectRatio: 1,
 		}
 	});
-};
-
-/**
- * 表示する母集団を設定する
- * @param {Array<PersonResult>} target 
- */
-const update_target_data = target => {
-	all_laps.forEach(lap => {
-		const k = lap + '_sec';
-
-		const sorted_times = target.map(x => x[k]).filter(x => x).sort((a, b) => a - b);
-
-		if (sorted_times.length < 2) {
-			g[lap].stats = { valid: false };
-			return;
-		}
-
-		const min = sorted_times[0];
-		const max = sorted_times[sorted_times.length - 1];
-
-		// 平均
-		const average = sorted_times.reduce((a, b) => a + b / sorted_times.length, 0);
-		// 分散
-		const variance = sorted_times.reduce((a, b) => a + Math.pow(b - average, 2) / sorted_times.length, 0);
-		// 標準偏差
-		const stdev = Math.sqrt(variance);
-
-		g[lap].stats = {
-			valid: true,
-			count: sorted_times.length,
-			sorted_times,
-			time: { min, max },
-			average,
-			variance,
-			stdev,
-		};
-	});
-
-	// 全レコードのデータをまとめる
-	const time_min = Math.min(...all_laps.filter(lap => g[lap]?.stats?.valid).map(lap => g[lap].stats.time.min));
-	const time_max = Math.max(...all_laps.filter(lap => g[lap]?.stats?.valid).map(lap => g[lap].stats.time.max));
-
-	if (!(isFinite(time_max) && isFinite(time_min))) {
-		g.chart_data = [];
-		g.density_data = [];
-		g.member_chart_data = [];
-
-		return;
-	}
-
-	g.chart_data = Array(time_max - time_min).fill(0)
-		.map((_, i) => time_min + i)
-		.map(x => ({
-			x,
-			...Object.fromEntries(
-				all_laps
-					.filter(lap => g[lap].stats.valid)
-					.map(lap => {
-						const v = g[lap].stats.sorted_times.findIndex(t => t > x);
-						return [lap, v > 0 ? v : undefined];
-					})),
-		}));
-
-	const density_sampling = Math.min(80, g.chart_data.length);
-	const density_step = Math.floor(g.chart_data.length / density_sampling);
-
-	g.density_data = Array(density_sampling).fill(0)
-		.map((_, i) => {
-			const src = Math.max(0, (i - 1) * density_step);
-			const dst = Math.min(g.chart_data.length - 1, i * density_step);
-			return {
-				x: i * density_step + time_min,
-				...Object.fromEntries(all_laps.map(lap => [lap, (g.chart_data[dst][lap] - g.chart_data[src][lap]) || undefined])),
-			};
-		});
-
-	update_all_member_stats();
-
-	g.member_chart_data = g.member_data.map(d => generate_member_chart_data(d));
-};
-
-/**
- * 個人のレース結果から、ポイントするチャート描画用のデータを作成する
- * @param {PersonResult} member_data 
- * @returns {PersonChartData}
- */
-const generate_member_chart_data = member_data => {
-	return Object.fromEntries([
-		['tag', member_data],
-		...all_laps.map(lap => {
-			const lap_x = member_data[lap + '_sec'];
-			const lap_y = g.chart_data[lap_x - g.chart_data[0]?.x]?.[lap];
-			return [lap, { x: lap_x, y: lap_y }];
-		})]);
-};
-
-/**
- * メンバーの統計データを再計算する
- * @param {PersonResult} member 
- * @param {Lap} lap 
- */
-const update_member_stats = (member, lap) => {
-	if (!('stats' in member)) member.stats = {};
-
-	const data_stats = g[lap].stats;
-
-	if (!data_stats.valid) {
-		member.stats[lap] = { valid: false };
-		return;
-	}
-
-	member.stats[lap] = { valid: true };
-
-	const v = member[lap + '_sec'];
-	if (v) {
-		member.stats[lap].score = (data_stats.average - v) / data_stats.stdev * 10 + 50;
-		member.stats[lap].percentile = data_stats.sorted_times.findIndex(t => t > v) / data_stats.count;
-	}
-};
-
-
-const update_all_member_stats = () => {
-	g.member_data.forEach(member => all_laps.forEach(lap => update_member_stats(member, lap)));
 };
 
 window.addEventListener('load', () => {
@@ -653,12 +475,12 @@ window.addEventListener('load', () => {
 
 		group.addEventListener('change', () => {
 			if (group.firstElementChild.selected) {
-				update_target_data(g.data);
+				data_manager.setFilter(() => true);
 			} else {
 				const values = Array.from(group.querySelectorAll('option')).filter(x => x.selected).map(x => x.value);
-
 				if (values.length === 0) return;
-				update_target_data(g.data.filter(k => values.includes(k.section)));
+
+				data_manager.setFilter(k => values.includes(k.section));
 			}
 			draw_all();
 		});
@@ -694,16 +516,11 @@ window.addEventListener('load', () => {
 				new_member_list_element.removeChild(elem);
 				active_member_list_element.appendChild(elem);
 
-				all_laps.forEach(lap => update_member_stats(member_data, lap));
-
-				g.member_data.push(member_data);
-				g.member_chart_data.push(generate_member_chart_data(member_data));
+				data_manager.addMember(member_data);
 			} else if (mode === 'remove') {
 				active_member_list_element.removeChild(elem);
 
-				const i = g.member_data.findIndex(d => d == member_data);
-				g.member_data.splice(i, 1);
-				g.member_chart_data.splice(i, 1);
+				data_manager.removeMember(member_data);
 			} else {
 				throw new Error('Unset data-member-update-mode');
 			}
@@ -727,14 +544,11 @@ window.addEventListener('load', () => {
 		.then(res => res.json())
 		.then(json => {
 			g.course = json.course;
-			g.data = json.result;
-
-			g.member_data = g.data.filter(x => initial_member_ids.includes(x.number));
-
-			update_target_data(g.data);
+			data_manager.setData(json.result);
+			data_manager.setMembers(json.result.filter(x => initial_member_ids.includes(x.number)));
 
 			// 初期メンバーリスト要素を作る
-			g.member_data.map(d => generate_member_list_element(d, 'remove'))
+			data_manager.member_data.map(d => generate_member_list_element(d, 'remove'))
 				.forEach(elem => active_member_list_element.appendChild(elem));
 
 
@@ -794,6 +608,21 @@ window.addEventListener('load', () => {
 
 			return result;
 		})
+		.then(result => {
+			// メンバー追加処理
+			document.querySelector('#new_member_input').addEventListener('input', event => {
+				new_member_list_element.textContent = '';
+
+				const v = event.target.value;
+				if (v === '') return;
+
+				result
+					.filter(x => x.number === v || x.display_name.includes(v))
+					// ToDo: 追加済みメンバーとの重複チェックをここにいれる
+					.map(x => generate_member_list_element(x, 'add'))
+					.forEach(x => new_member_list_element.appendChild(x));
+			});
+		})
 		.then(() => draw_all());
 
 	{
@@ -841,20 +670,6 @@ window.addEventListener('load', () => {
 			});
 		});
 	}
-
-	// メンバー追加処理
-	document.querySelector('#new_member_input').addEventListener('input', event => {
-		new_member_list_element.textContent = '';
-
-		const v = event.target.value;
-		if (v === '') return;
-
-		g.data
-			.filter(x => x.number === v || x.display_name.includes(v))
-			// ToDo: 追加済みメンバーとの重複チェックをここにいれる
-			.map(x => generate_member_list_element(x, 'add'))
-			.forEach(x => new_member_list_element.appendChild(x));
-	});
 
 	{
 		// Share機能
