@@ -1,6 +1,6 @@
-import list_json from '/assets/list.json' with { type: 'json' };
+import list_json from '../assets/list.json' with { type: 'json' };
 
-/** @type {Array<{race: string, label: string, course: Course}} */
+/** @type {Array<{race: string, label: string, course: Course}>} */
 const race_list = list_json;
 
 import BootstrapTemplate from './element_template.mjs';
@@ -73,11 +73,29 @@ const m = {};
  */
 
 /**
+ * @typedef PersonStatsItem
+ * @property {number} score
+ * @property {number} percentile
+ */
+
+/**
+ * @typedef PersonStats
+ * @property {PersonStatsItem} record
+ * @property {PersonStatsItem} swim
+ * @property {PersonStatsItem} bike
+ * @property {PersonStatsItem} run
+ */
+
+/**
+ * @typedef {PersonResult & PersonStats} PersonResultWithStats
+ */
+
+/**
  * @typedef GlobalVars
  * @property {string} race_file
  * @property {string} race レースID, fuji2024など
  * @property {Array<PersonResult>} data
- * @property {Array<PersonResult>} member_data
+ * @property {Array<PersonResultWithStats>} member_data
  * @property {Array<PersonChartData>} member_chart_data
  * @property {Array<LapPointData>} density_data
  * @property {Array<LapPointData>} chart_data
@@ -99,7 +117,7 @@ const g = {
 	member_chart_data: [],
 	density_data: [],
 	chart_data: [],
-	course,
+	course: {},
 	record: {},
 	swim: {},
 	bike: {},
@@ -112,7 +130,7 @@ const g = {
  */
 const update_search_string = () => {
 	const race = g.race_file.match(/\/?assets\/result\/(.*?)\.json/)[1];
-	window.history.replaceState(null, null, `?race=${race}&members=${g.member_data.map(x => x.number).join(',')}`);
+	window.history.replaceState(null, '', `?race=${race}&members=${g.member_data.map(x => x.number).join(',')}`);
 
 	// Xシェアリンクを更新
 	document.querySelector('#share-x-link').setAttribute('href', `https://x.com/intent/tweet?text=${encodeURIComponent(g.course.name + 'のリザルト')}&url=${encodeURIComponent(window.location.href)}`);
@@ -556,7 +574,7 @@ const update_target_data = target => {
 			const dst = Math.min(g.chart_data.length - 1, i * density_step);
 			return {
 				x: i * density_step + time_min,
-				...Object.fromEntries(all_laps.map(lap => [lap, g.chart_data[dst][lap] - g.chart_data[src][lap] || undefined])),
+				...Object.fromEntries(all_laps.map(lap => [lap, (g.chart_data[dst][lap] - g.chart_data[src][lap]) || undefined])),
 			};
 		});
 
@@ -661,7 +679,7 @@ window.addEventListener('load', () => {
 	 */
 	const generate_member_list_element = (member_data, mode) => {
 		const elem = member_list_template.cloneNode(true);
-		elem.id = '';
+		elem.removeAttribute('id');
 
 		elem.querySelector('.display_name').textContent = member_data.display_name;
 		elem.querySelector('.number').textContent = member_data.number;
@@ -892,7 +910,3 @@ window.addEventListener('load', () => {
 	Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
 		.forEach(elem => new bootstrap.Tooltip(elem));
 }, { once: true });
-
-window.addEventListener('resume', () => {
-	//	alert('resume');
-});
