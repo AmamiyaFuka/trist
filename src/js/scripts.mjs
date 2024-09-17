@@ -157,7 +157,7 @@ const draw_summaries = () => {
 const draw_all = () => {
 	all_laps
 		.forEach(x => {
-			draw(x);
+			draw_chart(x);
 			draw_member_ranking(x);
 		});
 
@@ -302,7 +302,7 @@ const draw_member_ranking = (lap) => {
  * チャートを描画する
  * @param {Lap} lap 
  */
-const draw = (lap) => {
+const draw_chart = (lap) => {
 	// 既に描画されている場合は消去する
 	if (g[lap].chart) g[lap].chart.destroy();
 	g[lap].chart = null;
