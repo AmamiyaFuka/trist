@@ -6,22 +6,18 @@ const templater = new BootstrapTemplate();
 import ColorPallets from './color_pallets.mjs';
 const color_pallets = new ColorPallets();
 
+import QueryManager from './query_manager.mjs';
+const query_manager = new QueryManager(window);
+
 import DataManagerTri from './data_manager.mjs';
 
 
 /** @typedef {'record'|'swim'|'bike'|'run'} Lap */
 
-/**
- * @readonly
- * @enum {Lap}
- */
-const lap_enum = { record: 'record', swim: 'swim', bike: 'bike', run: 'run' };
-
 /** @type {Array<Lap>} */
-const all_laps = Object.values(lap_enum);
-
+const sub_laps = ['swim', 'bike', 'run']
 /** @type {Array<Lap>} */
-const sub_laps = [lap_enum.swim, lap_enum.bike, lap_enum.run];
+const all_laps = ['record', ...sub_laps];
 
 const data_manager = new DataManagerTri(all_laps);
 
@@ -56,27 +52,37 @@ const g = {
 	run: {},
 };
 
+{
+	const q = query_manager.getQueryParameter();
+	g.race = q.race ?? 'sample';
+}
+
+
+const data_async = import(`/assets/result/${g.race}.json`, { with: { type: 'json' } })
+	.then(({ default: json }) => {
+		g.course = json.course;
+		data_manager.setData(json.result);
+
+		const initial_member_ids = [query_manager.getQueryParameter().members].flat();
+		data_manager.setMembers(json.result.filter(x => initial_member_ids.includes(x.number)));
+
+		return json.result;
+	});
+
 /**
  * 現在の表示状態をsearch文字列に反映させる
  */
 const update_search_string = () => {
-	const { query, x } = g.race === 'sample' ? {
-		query: '',
-		x: {
-			text: 'Trist',
-		}
-	} : {
-		query: `?race=${g.race}&members=${data_manager.member_data.map(x => x.number).join(',')}`,
-		x: {
-			text: g.course.name + 'のリザルト',
-		}
-	};
+	const query = query_manager.setQueryParameter(g.race === 'sample' ? {} : {
+		race: g.race,
+		members: data_manager.member_data.map(x => x.number),
+	});
 
-	window.history.replaceState(null, '', query);
-
-	const url = 'https://trist.amamiya-studio.com/' + query;
 	// Xシェアリンクを更新
-	document.querySelector('#share-x-link').setAttribute('href', `https://x.com/intent/tweet?text=${encodeURIComponent(x.text)}&url=${encodeURIComponent(url)}`);
+	const text = g.race === 'sample' ? 'Trist' : encodeURIComponent(g.course.name + 'のリザルト');
+	const url = 'https://trist.amamiya-studio.com/' + query;
+	document.querySelector('#share-x-link')
+		.setAttribute('href', `https://x.com/intent/tweet?text=${text}&url=${url}`);
 };
 
 /**
@@ -151,7 +157,7 @@ const draw_summaries = () => {
 const draw_all = () => {
 	all_laps
 		.forEach(x => {
-			draw(x);
+			draw_chart(x);
 			draw_member_ranking(x);
 		});
 
@@ -296,7 +302,7 @@ const draw_member_ranking = (lap) => {
  * チャートを描画する
  * @param {Lap} lap 
  */
-const draw = (lap) => {
+const draw_chart = (lap) => {
 	// 既に描画されている場合は消去する
 	if (g[lap].chart) g[lap].chart.destroy();
 	g[lap].chart = null;
@@ -427,26 +433,13 @@ const draw = (lap) => {
 };
 
 window.addEventListener('load', () => {
+	/** 'load' イベントの中身は次の順で実行する
+	 * 1. Template作成
+	 * 2. リザルトを読み込んだらやる処理 (async)
+	 * 3. load直後に可能なしょり。イベント登録など
+	 */
+
 	templater.init(document);
-
-	/** @type {Array<string>} */
-	let initial_member_ids;
-	{
-		/**
-		 * search文字列から、表示に関わるパラメータを抽出する
-		 */
-		const query = window.location.search.substring(1).split('&');
-
-		/** @type {Object.<string, string>} */
-		const r = Object.fromEntries(['race', 'members'].map(k => {
-			const v = query.find(q => q.startsWith(k));
-			return v ? [k, v.split('=')[1]] : [k];
-		}));
-
-		// パラメータから必要なものをグローバル変数に格納
-		g.race = r.race ?? 'sample';
-		initial_member_ids = r.members?.split(',') ?? [];
-	}
 
 	{
 		const parent = document.querySelector('#view');
@@ -465,23 +458,6 @@ window.addEventListener('load', () => {
 			g[lap].panel = panel;
 			g[lap].context = panel.querySelector(`canvas`);
 			parent.insertBefore(panel, position);
-		});
-	}
-
-	{
-		// Groupフィルタ
-		const group = document.querySelector('#group');
-
-		group.addEventListener('change', () => {
-			if (group.firstElementChild.selected) {
-				data_manager.setFilter(() => true);
-			} else {
-				const values = Array.from(group.querySelectorAll('option')).filter(x => x.selected).map(x => x.value);
-				if (values.length === 0) return;
-
-				data_manager.setFilter(k => values.includes(k.section));
-			}
-			draw_all();
 		});
 	}
 
@@ -539,51 +515,46 @@ window.addEventListener('load', () => {
 	};
 
 
-	fetch(`assets/result/${g.race}.json`)
-		.then(res => res.json())
-		.then(json => {
-			g.course = json.course;
-			data_manager.setData(json.result);
-			data_manager.setMembers(json.result.filter(x => initial_member_ids.includes(x.number)));
-
+	data_async
+		.then(result => {
 			// 初期メンバーリスト要素を作る
 			data_manager.member_data.map(d => generate_member_list_element(d, 'remove'))
 				.forEach(elem => active_member_list_element.appendChild(elem));
 
+			return result;
+		})
+		.then(result => {
+			// ヘッダー情報としてレース情報を格納する
+			document.querySelector('title').textContent = `${g.course.name} :: Trist`;
 
-			{
-				// ヘッダー情報としてレース情報を格納する
-				document.querySelector('title').textContent = `${g.course.name} :: Trist`;
-
-				const course_summary = document.querySelector('#course_summary');
-				[
-					`${new Date(g.course.starttime).toLocaleString('ja-JP')} スタート`,
-					`場所：${g.course.locale} ${g.course.weather}`,
-					`${g.course.category} distance`,
-					sub_laps.map(lap => `${lap} ${g.course.distance[lap]} km`).join(', '),
-				].forEach(text => {
-					const p = document.createElement('p');
-					p.textContent = text;
-					course_summary.appendChild(p);
-				});
-			}
-
+			const course_summary = document.querySelector('#course_summary');
+			[
+				`${new Date(g.course.starttime).toLocaleString('ja-JP')} スタート`,
+				`場所：${g.course.locale} ${g.course.weather}`,
+				`${g.course.category} distance`,
+				sub_laps.map(lap => `${lap} ${g.course.distance[lap]} km`).join(', '),
+			].forEach(text => {
+				const p = document.createElement('p');
+				p.textContent = text;
+				course_summary.appendChild(p);
+			});
+			return result;
+		})
+		.then(result => {
 			// 各Panelにレース名をいれる（薄字のやつ）
 			Array.from(document.querySelectorAll('.course_name')).forEach(elem => elem.textContent = g.course.name);
 
-			{
-				// 種目別ビューの距離をいれる
-				sub_laps.forEach(lap => g[lap].panel.querySelector(`.distance`).textContent = g.course.distance[lap] + ' km');
+			// 種目別ビューの距離をいれる
+			sub_laps.forEach(lap => g[lap].panel.querySelector(`.distance`).textContent = g.course.distance[lap] + ' km');
 
-				// 総合は距離の代わりに、ディタンスカテゴリ
-				g.record.panel.querySelector('.distance').textContent = g.course.category;
-			}
+			// 総合は距離の代わりに、ディタンスカテゴリ
+			g.record.panel.querySelector('.distance').textContent = g.course.category;
+
 
 			document.querySelector('#share-x-link')
 				.setAttribute('href', `https://x.com/intent/tweet?text=${encodeURIComponent(g.course.name + 'のリザルト')}&url=${encodeURIComponent(window.location.href)}`);
 
-
-			return json.result;
+			return result;
 		})
 		.then(result => {
 			const groups = result.map(d => d.section).filter(x => x).filter((x, i, a) => a.indexOf(x) === i);
@@ -604,6 +575,24 @@ window.addEventListener('load', () => {
 				s.appendChild(option);
 			});
 			s.setAttribute('size', s.childElementCount);
+
+			return result;
+		})
+		.then(result => {
+			// Groupフィルタ
+			const group = document.querySelector('#group');
+
+			group.addEventListener('change', () => {
+				if (group.firstElementChild.selected) {
+					data_manager.setFilter(() => true);
+				} else {
+					const values = Array.from(group.querySelectorAll('option')).filter(x => x.selected).map(x => x.value);
+					if (values.length === 0) return;
+
+					data_manager.setFilter(k => values.includes(k.section));
+				}
+				draw_all();
+			});
 
 			return result;
 		})
