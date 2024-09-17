@@ -59,6 +59,23 @@ const g = {
 	run: {},
 };
 
+{
+	const q = query_manager.getQueryParameter();
+	g.race = q.race ?? 'sample';
+}
+
+
+const data_async = import(`/assets/result/${g.race}.json`, { with: { type: 'json' } })
+	.then(({ default: json }) => {
+		g.course = json.course;
+		data_manager.setData(json.result);
+
+		const initial_member_ids = [query_manager.getQueryParameter().members].flat();
+		data_manager.setMembers(json.result.filter(x => initial_member_ids.includes(x.number)));
+
+		return json.result;
+	});
+
 /**
  * 現在の表示状態をsearch文字列に反映させる
  */
@@ -423,15 +440,13 @@ const draw = (lap) => {
 };
 
 window.addEventListener('load', () => {
-	templater.init(document);
+	/** 'load' イベントの中身は次の順で実行する
+	 * 1. Template作成
+	 * 2. リザルトを読み込んだらやる処理 (async)
+	 * 3. load直後に可能なしょり。イベント登録など
+	 */
 
-	/** @type {Array<string>} */
-	let initial_member_ids;
-	{
-		const q = query_manager.getQueryParameter();
-		g.race = q.race ?? 'sample';
-		initial_member_ids = [q.members].flat() ?? [];
-	}
+	templater.init(document);
 
 	{
 		const parent = document.querySelector('#view');
@@ -450,23 +465,6 @@ window.addEventListener('load', () => {
 			g[lap].panel = panel;
 			g[lap].context = panel.querySelector(`canvas`);
 			parent.insertBefore(panel, position);
-		});
-	}
-
-	{
-		// Groupフィルタ
-		const group = document.querySelector('#group');
-
-		group.addEventListener('change', () => {
-			if (group.firstElementChild.selected) {
-				data_manager.setFilter(() => true);
-			} else {
-				const values = Array.from(group.querySelectorAll('option')).filter(x => x.selected).map(x => x.value);
-				if (values.length === 0) return;
-
-				data_manager.setFilter(k => values.includes(k.section));
-			}
-			draw_all();
 		});
 	}
 
@@ -524,51 +522,46 @@ window.addEventListener('load', () => {
 	};
 
 
-	fetch(`assets/result/${g.race}.json`)
-		.then(res => res.json())
-		.then(json => {
-			g.course = json.course;
-			data_manager.setData(json.result);
-			data_manager.setMembers(json.result.filter(x => initial_member_ids.includes(x.number)));
-
+	data_async
+		.then(result => {
 			// 初期メンバーリスト要素を作る
 			data_manager.member_data.map(d => generate_member_list_element(d, 'remove'))
 				.forEach(elem => active_member_list_element.appendChild(elem));
 
+			return result;
+		})
+		.then(result => {
+			// ヘッダー情報としてレース情報を格納する
+			document.querySelector('title').textContent = `${g.course.name} :: Trist`;
 
-			{
-				// ヘッダー情報としてレース情報を格納する
-				document.querySelector('title').textContent = `${g.course.name} :: Trist`;
-
-				const course_summary = document.querySelector('#course_summary');
-				[
-					`${new Date(g.course.starttime).toLocaleString('ja-JP')} スタート`,
-					`場所：${g.course.locale} ${g.course.weather}`,
-					`${g.course.category} distance`,
-					sub_laps.map(lap => `${lap} ${g.course.distance[lap]} km`).join(', '),
-				].forEach(text => {
-					const p = document.createElement('p');
-					p.textContent = text;
-					course_summary.appendChild(p);
-				});
-			}
-
+			const course_summary = document.querySelector('#course_summary');
+			[
+				`${new Date(g.course.starttime).toLocaleString('ja-JP')} スタート`,
+				`場所：${g.course.locale} ${g.course.weather}`,
+				`${g.course.category} distance`,
+				sub_laps.map(lap => `${lap} ${g.course.distance[lap]} km`).join(', '),
+			].forEach(text => {
+				const p = document.createElement('p');
+				p.textContent = text;
+				course_summary.appendChild(p);
+			});
+			return result;
+		})
+		.then(result => {
 			// 各Panelにレース名をいれる（薄字のやつ）
 			Array.from(document.querySelectorAll('.course_name')).forEach(elem => elem.textContent = g.course.name);
 
-			{
-				// 種目別ビューの距離をいれる
-				sub_laps.forEach(lap => g[lap].panel.querySelector(`.distance`).textContent = g.course.distance[lap] + ' km');
+			// 種目別ビューの距離をいれる
+			sub_laps.forEach(lap => g[lap].panel.querySelector(`.distance`).textContent = g.course.distance[lap] + ' km');
 
-				// 総合は距離の代わりに、ディタンスカテゴリ
-				g.record.panel.querySelector('.distance').textContent = g.course.category;
-			}
+			// 総合は距離の代わりに、ディタンスカテゴリ
+			g.record.panel.querySelector('.distance').textContent = g.course.category;
+
 
 			document.querySelector('#share-x-link')
 				.setAttribute('href', `https://x.com/intent/tweet?text=${encodeURIComponent(g.course.name + 'のリザルト')}&url=${encodeURIComponent(window.location.href)}`);
 
-
-			return json.result;
+			return result;
 		})
 		.then(result => {
 			const groups = result.map(d => d.section).filter(x => x).filter((x, i, a) => a.indexOf(x) === i);
@@ -589,6 +582,24 @@ window.addEventListener('load', () => {
 				s.appendChild(option);
 			});
 			s.setAttribute('size', s.childElementCount);
+
+			return result;
+		})
+		.then(result => {
+			// Groupフィルタ
+			const group = document.querySelector('#group');
+
+			group.addEventListener('change', () => {
+				if (group.firstElementChild.selected) {
+					data_manager.setFilter(() => true);
+				} else {
+					const values = Array.from(group.querySelectorAll('option')).filter(x => x.selected).map(x => x.value);
+					if (values.length === 0) return;
+
+					data_manager.setFilter(k => values.includes(k.section));
+				}
+				draw_all();
+			});
 
 			return result;
 		})
