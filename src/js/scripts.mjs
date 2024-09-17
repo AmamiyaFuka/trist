@@ -1,15 +1,14 @@
 import race_list from '../assets/list.json' with { type: 'json' };
 
 import BootstrapTemplate from './bootstrap_template.mjs';
-const templater = new BootstrapTemplate();
-
 import ColorPallets from './color_pallets.mjs';
-const color_pallets = new ColorPallets();
-
 import QueryManager from './query_manager.mjs';
-const query_manager = new QueryManager(window);
-
 import DataManagerTri from './data_manager.mjs';
+import Utils from './utils.mjs';
+
+const templater = new BootstrapTemplate();
+const color_pallets = new ColorPallets();
+const query_manager = new QueryManager(window);
 
 
 /** @typedef {'record'|'swim'|'bike'|'run'} Lap */
@@ -28,7 +27,7 @@ const data_manager = new DataManagerTri(all_laps);
  * @property {Element} panel
  * @property {Chart} chart
  * @property {DataStats} stats
- * @property {HTMLCanvasElement} context
+ * @property {HTMLCanvasElement} canvas
  */
 
 
@@ -36,20 +35,14 @@ const data_manager = new DataManagerTri(all_laps);
  * @typedef GlobalVars
  * @property {string} race レースID, fuji2024など
  * @property {Course} course
- * @property {LapResultContext} record
- * @property {LapResultContext} swim
- * @property {LapResultContext} bike
- * @property {LapResultContext} run 
+ * @property {Object.<Lap, LapResultContext>} context
  */
 
 /** @type {GlobalVars} */
 const g = {
 	race: 'sample',
 	course: {},
-	record: {},
-	swim: {},
-	bike: {},
-	run: {},
+	context: Object.fromEntries(all_laps.map(lap => [lap, {}])),
 };
 
 {
@@ -83,39 +76,6 @@ const update_search_string = () => {
 	const url = 'https://trist.amamiya-studio.com/' + query;
 	document.querySelector('#share-x-link')
 		.setAttribute('href', `https://x.com/intent/tweet?text=${text}&url=${url}`);
-};
-
-/**
- * 秒数をHH:mm:ss表記にする
- * 3200 -> 00:53:20
- * @param {number} sec 
- * @returns {string}
- */
-const sec_to_hhmmss = sec => {
-	const h = Math.floor(sec / 3600);
-	const m = Math.floor((sec - h * 3600) / 60);
-	const s = sec % 60;
-	return [h, m, s].map(x => ('00' + x).slice(-2)).join(':');
-};
-
-/**
- * 秒数を、符号付のm:ss表記にする
- * @param {number} sec 
- * @returns {string}
- */
-const sec_to_mss_with_sign = sec => {
-	let sign = '±';
-	if (sec < 0) {
-		sign = '-';
-		sec = -sec;
-	} else if (sec > 0) {
-		sign = '+';
-	}
-
-	const m = Math.floor(sec / 60);
-	const s = sec % 60;
-
-	return `${sign}${m}:${('00' + s).slice(-2)}`;
 };
 
 
@@ -187,7 +147,7 @@ const draw_lap_time_summary = (root, template) => {
 
 				if (v) {
 					// 比較値が含まれている場合は、差分表示。いない場合は絶対値表示
-					const time = current_time[lap] ? sec_to_mss_with_sign(v - current_time[lap]) : sec_to_hhmmss(v);
+					const time = current_time[lap] ? Utils.sec_to_mss_with_sign(v - current_time[lap]) : Utils.sec_to_hhmmss(v);
 					// 比較値が含まれていない場合はセットする
 					current_time[lap] ||= v;
 
@@ -274,22 +234,22 @@ const draw_lap_score_summary = (root, template) => {
  */
 const draw_member_ranking = (lap) => {
 	// 一度、内容を全て消去する
-	g[lap].panel.querySelector('ul.ranking').textContent = '';
+	g.context[lap].panel.querySelector('ul.ranking').textContent = '';
 
 	let front = null;
-	const parent = g[lap].panel.querySelector('ul.ranking');
+	const parent = g.context[lap].panel.querySelector('ul.ranking');
 
 	data_manager.member_data
 		.map((member, i) => ({ color: color_pallets.indexOf(i), display: member.display_name, time: member.stats[lap].time }))
 		.sort((a, b) => a.time - b.time)
 		.map(x => {
 			const d = x.time - front;
-			const delta = (front && !isNaN(d)) ? sec_to_mss_with_sign(x.time - front, true) : '';
+			const delta = (front && !isNaN(d)) ? Utils.sec_to_mss_with_sign(x.time - front, true) : '';
 			if (!isNaN(d)) front = x.time;
 
 			const item = templater.generate('ranking_item', {
 				'.display_name': x.display,
-				'.time': x.time ? sec_to_hhmmss(x.time) : 'No data',
+				'.time': x.time ? Utils.sec_to_hhmmss(x.time) : 'No data',
 				'.delta': delta,
 			});
 			item.querySelector('.circle').style.backgroundColor = x.color;
@@ -304,8 +264,8 @@ const draw_member_ranking = (lap) => {
  */
 const draw_chart = (lap) => {
 	// 既に描画されている場合は消去する
-	if (g[lap].chart) g[lap].chart.destroy();
-	g[lap].chart = null;
+	g.context[lap].chart?.destroy();
+	g.context[lap].chart = null;
 
 	const time_step_sec = 600;
 
@@ -349,7 +309,7 @@ const draw_chart = (lap) => {
 		}],
 	};
 
-	g[lap].chart = new Chart(g[lap].context, {
+	g.context[lap].chart = new Chart(g.context[lap].canvas, {
 		type: 'line',
 		data,
 		options: {
@@ -361,7 +321,7 @@ const draw_chart = (lap) => {
 					min: time_min,
 					max: time_max,
 					ticks: {
-						callback: sec_to_hhmmss,
+						callback: Utils.sec_to_hhmmss,
 						autoSkip: true,
 						stepSize: 600,
 					},
@@ -402,7 +362,7 @@ const draw_chart = (lap) => {
 						label: (item) => {
 							const d = item.raw;
 							const stats = item.raw.stats[lap];
-							const time = sec_to_hhmmss(stats.time);
+							const time = Utils.sec_to_hhmmss(stats.time);
 
 							const tips = [`${d.display_name} ${time}`, `${stats.ranking}位`];
 
@@ -455,8 +415,8 @@ window.addEventListener('load', () => {
 			const panel = templater.generate('lap_panel', { '.lap_name': lap_names[lap] });
 			panel.classList.add(lap);
 
-			g[lap].panel = panel;
-			g[lap].context = panel.querySelector(`canvas`);
+			g.context[lap].panel = panel;
+			g.context[lap].canvas = panel.querySelector(`canvas`);
 			parent.insertBefore(panel, position);
 		});
 	}
@@ -502,7 +462,7 @@ window.addEventListener('load', () => {
 
 			// 関係する要素の再描画処理
 			all_laps.forEach(lap => {
-				g[lap]?.chart?.update();
+				g.context[lap]?.chart?.update();
 				draw_member_ranking(lap);
 			});
 
@@ -545,10 +505,10 @@ window.addEventListener('load', () => {
 			Array.from(document.querySelectorAll('.course_name')).forEach(elem => elem.textContent = g.course.name);
 
 			// 種目別ビューの距離をいれる
-			sub_laps.forEach(lap => g[lap].panel.querySelector(`.distance`).textContent = g.course.distance[lap] + ' km');
+			sub_laps.forEach(lap => g.context[lap].panel.querySelector(`.distance`).textContent = g.course.distance[lap] + ' km');
 
 			// 総合は距離の代わりに、ディタンスカテゴリ
-			g.record.panel.querySelector('.distance').textContent = g.course.category;
+			g.context.record.panel.querySelector('.distance').textContent = g.course.category;
 
 
 			document.querySelector('#share-x-link')
