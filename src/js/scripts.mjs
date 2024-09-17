@@ -6,6 +6,9 @@ const templater = new BootstrapTemplate();
 import ColorPallets from './color_pallets.mjs';
 const color_pallets = new ColorPallets();
 
+import QueryManager from './query_manager.mjs';
+const query_manager = new QueryManager(window);
+
 import DataManagerTri from './data_manager.mjs';
 
 
@@ -60,23 +63,16 @@ const g = {
  * 現在の表示状態をsearch文字列に反映させる
  */
 const update_search_string = () => {
-	const { query, x } = g.race === 'sample' ? {
-		query: '',
-		x: {
-			text: 'Trist',
-		}
-	} : {
-		query: `?race=${g.race}&members=${data_manager.member_data.map(x => x.number).join(',')}`,
-		x: {
-			text: g.course.name + 'のリザルト',
-		}
-	};
+	const query = query_manager.setQueryParameter(g.race === 'sample' ? {} : {
+		race: g.race,
+		members: data_manager.member_data.map(x => x.number),
+	});
 
-	window.history.replaceState(null, '', query);
-
-	const url = 'https://trist.amamiya-studio.com/' + query;
 	// Xシェアリンクを更新
-	document.querySelector('#share-x-link').setAttribute('href', `https://x.com/intent/tweet?text=${encodeURIComponent(x.text)}&url=${encodeURIComponent(url)}`);
+	const text = g.race === 'sample' ? 'Trist' : encodeURIComponent(g.course.name + 'のリザルト');
+	const url = 'https://trist.amamiya-studio.com/' + query;
+	document.querySelector('#share-x-link')
+		.setAttribute('href', `https://x.com/intent/tweet?text=${text}&url=${url}`);
 };
 
 /**
@@ -432,20 +428,9 @@ window.addEventListener('load', () => {
 	/** @type {Array<string>} */
 	let initial_member_ids;
 	{
-		/**
-		 * search文字列から、表示に関わるパラメータを抽出する
-		 */
-		const query = window.location.search.substring(1).split('&');
-
-		/** @type {Object.<string, string>} */
-		const r = Object.fromEntries(['race', 'members'].map(k => {
-			const v = query.find(q => q.startsWith(k));
-			return v ? [k, v.split('=')[1]] : [k];
-		}));
-
-		// パラメータから必要なものをグローバル変数に格納
-		g.race = r.race ?? 'sample';
-		initial_member_ids = r.members?.split(',') ?? [];
+		const q = query_manager.getQueryParameter();
+		g.race = q.race ?? 'sample';
+		initial_member_ids = [q.members].flat() ?? [];
 	}
 
 	{
