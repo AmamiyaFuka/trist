@@ -532,7 +532,7 @@ window.addEventListener('load', () => {
 				`${new Date(g.course.starttime).toLocaleString('ja-JP')} スタート`,
 				`場所：${g.course.locale} ${g.course.weather}`,
 				`${g.course.category} distance`,
-				sub_laps.map(lap => `${lap} ${g.course.distance[lap]} km`).join(', '),
+				sub_laps.map(lap => `${lap} ${g.course.distance[lap]}km`).join(', '),
 			].forEach(text => {
 				const p = document.createElement('p');
 				p.textContent = text;
