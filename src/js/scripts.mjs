@@ -14,17 +14,10 @@ import DataManagerTri from './data_manager.mjs';
 
 /** @typedef {'record'|'swim'|'bike'|'run'} Lap */
 
-/**
- * @readonly
- * @enum {Lap}
- */
-const lap_enum = { record: 'record', swim: 'swim', bike: 'bike', run: 'run' };
-
 /** @type {Array<Lap>} */
-const all_laps = Object.values(lap_enum);
-
+const sub_laps = ['swim', 'bike', 'run']
 /** @type {Array<Lap>} */
-const sub_laps = [lap_enum.swim, lap_enum.bike, lap_enum.run];
+const all_laps = ['record', ...sub_laps];
 
 const data_manager = new DataManagerTri(all_laps);
 
