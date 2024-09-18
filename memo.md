@@ -6,8 +6,9 @@
 ソロの人 → ソリストを転じて
 
 # 使用素材
+- Bootstrap
 - IcoMoon - Free: https://icomoon.io/app/
-  - cog, eye-blocked, eye, menu, user-minus, user-plus
+  - qr-code, link
 - SILHOUETTE ILLUST:  https://www.silhouette-illust.com/
   - 水泳、自転車競技、マラソン
 - X
