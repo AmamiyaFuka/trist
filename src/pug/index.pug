@@ -79,11 +79,9 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
                                 li#member_list_template.member-list-item.list-group-item.d-flex 
                                     span.display_name.align-self-center 
                                     span.number.align-self-center 
-                                    button.btn.ms-auto 
-                                        svg.user-plus(version='1.1' xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32')
-                                            use(xlink:href='assets/icon/user-plus.svg#root')
-                                        svg.user-minus(version='1.1' xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32')
-                                            use(xlink:href='assets/icon/user-minus.svg#root')
+                                    button.btn.ms-auto.px-3.py-1.fs-3
+                                        span.user-plus.bi-person-plus
+                                        span.user-minus.bi-person-dash-fill
                             ul#new_member_list.list-group.mt-2
                             h5 Members
                             ul#member_list.list-group
@@ -219,14 +217,6 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
                     strong.toast-message.me-auto Hello, world 
                     button.btn-close(data-bs-dismiss='toast')
                 .toast-body
-
-        .icons.d-none
-            //- 利用するSVGアイコンすべて読み込んでおく
-            .icons.d-none
-                svg#icon_user-plus(version='1.1' xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32')
-                    use(xlink:href='assets/icon/user-plus.svg#root')
-                svg#icon_user-minus(version='1.1' xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32')
-                    use(xlink:href='assets/icon/user-minus.svg#root')
 
         // Bootstrap core JS
         script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js')
