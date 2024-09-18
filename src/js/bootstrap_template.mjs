@@ -1,4 +1,4 @@
-/** */
+//@ts-check
 export default class BootstrapTemplate {
 	/** @type {Object.<string, HTMLElement>} */
 	#templates = {};
@@ -9,7 +9,7 @@ export default class BootstrapTemplate {
 	 * Documentからテンプレート要素を抽出し、後処理としてDocumentから取り除きます
 	 * テンプレートは class に "template" が指定されています
 	 * このメソッドは、documentがloadされた直後に実行されることを期待しています
-	 * @param {Document|HTMLElement} document 
+	 * @param {Document|Element} document 
 	 * @param {string} class_name
 	 */
 	init(document, class_name) {
@@ -17,12 +17,15 @@ export default class BootstrapTemplate {
 		// 最も子となる要素から再帰的に登録する
 		const template_element_list = Array.from(document.querySelectorAll('.' + class_name));
 		template_element_list.forEach(template_element => {
-			this.init(template_element);
+			this.init(template_element, class_name);
 
 			template_element.classList.remove(class_name);
 			const id = template_element.getAttribute('id');
 			if (!id || id in this.#templates) return;
+
+			/** @type {HTMLElement} */
 			const elem = template_element.cloneNode(true);
+			
 			elem.removeAttribute('id');
 			this.#templates[id] = elem;
 
@@ -33,7 +36,7 @@ export default class BootstrapTemplate {
 	/**
 	 * テンプレートから、HTMLElementを作成します
 	 * @param {string} template_id テンプレートのID 
-	 * @param {Object.<string, string>} texts テンプレートから作られたElemenに設定したい、queryとテキストをペアにしたObject
+	 * @param {Object.<string, string>} [texts] テンプレートから作られたElemenに設定したい、queryとテキストをペアにしたObject
 	 * @returns {HTMLElement}
 	 */
 	generate(template_id, texts) {
