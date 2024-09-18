@@ -65,24 +65,24 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
                     .modal-body.tab-content.p-0.m-3 
                         .tab-pane.fade.show.active#race-tab
                             #race_list.d-flex.flex-row.flex-wrap
-                            #race_list_divider_template.d-none.row.flex-nowrap.align-items-center.fs-6.overflow-hidden.w-100.sticky-top.bg-body 
+                            .template#race_list_divider_template.row.flex-nowrap.align-items-center.fs-6.overflow-hidden.w-100.sticky-top.bg-body 
                                 p.year_value.col-auto.m-0 
                                 hr.col.m-0
-                            a#race_list_item_template.d-none.btn.btn-outline-dark.rounded-pill.mx-1.my-2.px-2.py-1
+                            a.template#race_list_item_template.btn.btn-outline-dark.rounded-pill.mx-1.my-2.px-2.py-1
+                                span
 
                         .tab-pane.fade#member-tab
                             .d-flex
                                 h5.align-self-center.me-3.mt-auto.mb-auto Add
                                 label.align-self-center.flex-grow-1
                                     input#new_member_input.w-100(placeholder='名前, ゼッケン番号') 
-                            ul.d-none
-                                li#member_list_template.member-list-item.list-group-item.d-flex 
+                            ul#new_member_list.list-group.mt-2
+                                li.template#member_list_template.member-list-item.list-group-item.d-flex 
                                     span.display_name.align-self-center 
                                     span.number.align-self-center 
                                     button.btn.ms-auto.px-3.py-1.fs-3
                                         span.user-plus.bi-person-plus
                                         span.user-minus.bi-person-dash-fill
-                            ul#new_member_list.list-group.mt-2
                             h5 Members
                             ul#member_list.list-group
 
@@ -118,7 +118,7 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
                 #lap_time_chart(style="display: grid; \
                     grid-auto-rows: 2ex 2.7rem; \
                     row-gap: 0.1rem;")
-                #lap_time_row.d-none
+                .template#lap_time_row
                     .name
                     .time_bar 
                     .time.swim 
@@ -154,7 +154,7 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
                     .bar.bar-center.bar-end
                     .score-bg.score-bg-r.score-bg-b 
                     .dummy 
-                #lap_score_row.d-none
+                .template#lap_score_row
                     .dummy 
                     .dummy 
                     .bar 

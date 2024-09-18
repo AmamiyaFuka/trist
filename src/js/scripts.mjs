@@ -9,6 +9,7 @@ import Utils from './utils.mjs';
 const templater = new BootstrapTemplate();
 const color_pallets = new ColorPallets();
 
+const query_manager = new QueryManager(window);
 
 /**
  * @typedef LapResultContext
@@ -52,8 +53,6 @@ const initializer = (async () => {
 	const default_laps = ['record', 'swim', 'bike', 'run'];
 	const default_main_lap = 'record';
 
-
-	const query_manager = new QueryManager(window);
 	const q = query_manager.getQueryParameter();
 
 	g.race = q.race;
@@ -99,9 +98,8 @@ const draw_summaries = () => {
 	{
 		//ラップタイムサマリー
 		const root = document.querySelector('#lap_time_chart');
-		const template = document.querySelector('#lap_time_row');
 		if (g.result.member_data.length > 0) {
-			draw_lap_time_summary(root, template);
+			draw_lap_time_summary(root);
 
 			root.parentElement.classList.remove('d-none');
 		} else {
@@ -113,9 +111,8 @@ const draw_summaries = () => {
 	{
 		//ラップタイムスコア
 		const root = document.querySelector('#lap_score_chart');
-		const template = document.querySelector('#lap_score_row');
 		if (g.result.member_data.length > 0) {
-			draw_lap_score_summary(root, template);
+			draw_lap_score_summary(root);
 
 			root.parentElement.classList.remove('d-none');
 		} else {
@@ -140,9 +137,8 @@ const draw_all = () => {
 /**
  * ラップタイムサマリーテーブルを描画する
  * @param {Element} root 描画要素を配置するルートエレメント
- * @param {Element} template スタイル付けされた行要素
  */
-const draw_lap_time_summary = (root, template) => {
+const draw_lap_time_summary = (root) => {
 	// 初期化
 	root.textContent = '';
 
@@ -152,9 +148,10 @@ const draw_lap_time_summary = (root, template) => {
 	g.result.member_data
 		.sort((a, b) => a.stats.record.time - b.stats.record.time)
 		.forEach(member => {
-			const row = template.cloneNode(true);
+			const row = templater.generate('lap_time_row', {
+				'.name': member.display_name
+			});
 
-			row.querySelector('.name').textContent = member.display_name;
 			g.laps.sub.forEach(lap => {
 				const v = member.stats?.[lap]?.time;
 
@@ -200,9 +197,8 @@ const draw_lap_time_summary = (root, template) => {
 /**
  * ラップタイムサマリーテーブルを描画する
  * @param {Element} root 描画要素を配置するルートエレメント
- * @param {Element} template スタイル付けされた行要素
  */
-const draw_lap_score_summary = (root, template) => {
+const draw_lap_score_summary = (root) => {
 	// 初期化
 	const insert_position = root.querySelector('#lap_score_footer_start');
 	while (root.firstElementChild != insert_position) root.removeChild(root.firstElementChild);
@@ -210,9 +206,10 @@ const draw_lap_score_summary = (root, template) => {
 	g.result.member_data
 		.sort((a, b) => a.stats.record.time - b.stats.record.time)
 		.forEach((member, i) => {
-			const row = template.cloneNode(true);
-
-			row.querySelector('.name').textContent = member.display_name;
+			const row = templater.generate('lap_score_row', {
+				'.name': member.display_name,
+			});
+			
 			g.laps.sub.forEach(lap => {
 				if (!member.stats) return;
 				const v = member.stats[lap]?.score;
@@ -417,7 +414,6 @@ window.addEventListener('load', () => {
 	// メンバー追加・削除要素作成
 	const active_member_list_element = document.querySelector('#member_list');
 	const new_member_list_element = document.querySelector('#new_member_list');
-	const member_list_template = document.querySelector('#member_list_template');
 
 	/**
 	 * 
@@ -425,11 +421,10 @@ window.addEventListener('load', () => {
 	 * @param {'add'|'remove'} mode add: メンバー追加候補状態 remove: 既にメンバーに追加されてチャートに描画されてる状態 
 	 */
 	const generate_member_list_element = (member_data, mode) => {
-		const elem = member_list_template.cloneNode(true);
-		elem.removeAttribute('id');
-
-		elem.querySelector('.display_name').textContent = member_data.display_name;
-		elem.querySelector('.number').textContent = member_data.number;
+		const elem = templater.generate('member_list_template', {
+			'.display_name': member_data.display_name,
+			'.number': member_data.number,
+		});
 
 		const button = elem.querySelector('button');
 
@@ -599,18 +594,15 @@ window.addEventListener('load', () => {
 			const races = group_by_year[year];
 
 			/** @type {Element} */
-			const divider = divider_template.cloneNode(true);
-			divider.removeAttribute('id');
-			divider.classList.remove('d-none');
-			divider.querySelector('.year_value').textContent = year;
+			const divider = templater.generate('race_list_divider_template',{
+				'.year_value': year,
+			});
 			container.appendChild(divider);
 
 			races.forEach(({ race, label }) => {
-				const item = item_template.cloneNode(true);
-				item.removeAttribute('id');
-				item.classList.remove('d-none');
-
-				item.textContent = label;
+				const item = templater.generate('race_list_item_template', {
+					'span': label,
+				});
 				item.setAttribute('href', '?race=' + race);
 
 				if (g.race === race) {
