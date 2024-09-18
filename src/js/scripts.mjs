@@ -6,6 +6,8 @@ import QueryManager from './query_manager.mjs';
 import DataManagerTri from './data_manager.mjs';
 import Utils from './utils.mjs';
 
+import LapScoreSummary from './lap_score_summary.mjs';
+
 const templater = new BootstrapTemplate();
 const color_pallets = new ColorPallets();
 
@@ -27,6 +29,7 @@ const query_manager = new QueryManager(window);
  * @property {Object.<Lap, LapResultContext>} context
  * @property {Course} course
  * @property {DataManagerTri} result
+ * @property {Array<any>} summaries
  */
 
 /** @type {GlobalVars} */
@@ -40,6 +43,7 @@ const g = {
 	context: {},
 	course: {},
 	result: {},
+	summaries: [],
 };
 
 /**
@@ -60,13 +64,13 @@ const initializer = (async () => {
 	return import(`/assets/result/${g.race ?? 'sample'}.json`, { with: { type: 'json' } })
 		.then(({ default: { course, result } }) => {
 			g.course = course;
-			g.laps.all = g.course.laps?.keys ?? default_laps;
+			g.laps.all = g.course.laps?.keys?.map(x => x.name) ?? default_laps;
 			g.laps.main = g.course.laps?.main ?? default_main_lap;
 			g.laps.sub = g.laps.all.filter(x => x !== g.laps.main);
 
 			g.context = Object.fromEntries(g.laps.all.map(lap => [lap, {}]));
 
-			g.result = new DataManagerTri(course.laps ?? g.laps.all);
+			g.result = new DataManagerTri(g.laps.all);
 			g.result.setData(result);
 
 			const initial_member_ids = [q.members].flat();
@@ -106,19 +110,6 @@ const draw_summaries = () => {
 			root.parentElement.classList.add('d-none');
 		}
 	}
-
-
-	{
-		//ラップタイムスコア
-		const root = document.querySelector('#lap_score_chart');
-		if (g.result.member_data.length > 0) {
-			draw_lap_score_summary(root);
-
-			root.parentElement.classList.remove('d-none');
-		} else {
-			root.parentElement.classList.add('d-none');
-		}
-	}
 };
 
 /**
@@ -132,6 +123,9 @@ const draw_all = () => {
 		});
 
 	draw_summaries();
+	g.summaries.forEach(s => {
+		s.container.classList[s.update() ? 'remove' : 'add']('d-none');
+	});
 };
 
 /**
@@ -192,51 +186,6 @@ const draw_lap_time_summary = (root) => {
 	root.style.gridTemplateColumns = ['auto', ...g.laps.sub.map(k => (current_time[k] || base_time) / base_width + 'fr'), '0.5fr'].join(' 1px ');
 	// 出力例: auto 1px 1fr 1px 1.5fr 1px 1.3fr 1px 0.5fr;
 };
-
-
-/**
- * ラップタイムサマリーテーブルを描画する
- * @param {Element} root 描画要素を配置するルートエレメント
- */
-const draw_lap_score_summary = (root) => {
-	// 初期化
-	const insert_position = root.querySelector('#lap_score_footer_start');
-	while (root.firstElementChild != insert_position) root.removeChild(root.firstElementChild);
-
-	g.result.member_data
-		.sort((a, b) => a.stats.record.time - b.stats.record.time)
-		.forEach((member, i) => {
-			const row = templater.generate('lap_score_row', {
-				'.name': member.display_name,
-			});
-
-			g.laps.sub.forEach(lap => {
-				if (!member.stats) return;
-				const v = member.stats[lap]?.score;
-				const elem = row.querySelector('.stack_bar.' + lap);
-
-				// 幅の計算方法は styles.scss を参照のこと
-				const score_to_width = dev => Math.round(dev * 20 / 7) + '%';
-				if (v) {
-					elem.textContent = Math.round(v);
-					elem.style.width = score_to_width(v);
-				} else {
-					elem.textContent = '';
-					elem.style.color = 'rgba(0 0 0 0.7)';
-					elem.style.width = '0';
-				}
-			});
-
-			// 最初の要素だけ角丸用のクラスを追加
-			if (i == 0) {
-				row.querySelector('.score-bg-l').classList.add('score-bg-t');
-				row.querySelector('.score-bg-r').classList.add('score-bg-t');
-			}
-
-			while (row.firstElementChild) root.insertBefore(row.firstElementChild, insert_position);
-		});
-};
-
 
 /**
  * ランキング要素を描画する
@@ -408,8 +357,7 @@ window.addEventListener('load', () => {
 	 * 2. リザルトを読み込んだらやる処理 (async)
 	 * 3. load直後に可能なしょり。イベント登録など
 	 */
-
-	templater.init(document);
+	templater.init(document, 'template');
 
 	// メンバー追加・削除要素作成
 	const active_member_list_element = document.querySelector('#member_list');
@@ -569,6 +517,10 @@ window.addEventListener('load', () => {
 					.map(x => generate_member_list_element(x, 'add'))
 					.forEach(x => new_member_list_element.appendChild(x));
 			});
+		})
+		.then(() => {
+			// サマリー登録
+			g.summaries.push(new LapScoreSummary(g.laps.sub, g.result.member_data, document.querySelector('#lap_score')));
 		})
 		.then(() => draw_all());
 

@@ -143,8 +143,8 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
                         data-bs-toggle='tooltip' 
                         data-bs-placement='top' 
                         data-bs-title='レース結果を母集団とした偏差値です')
-                #lap_score_chart
-                    #lap_score_footer_start
+                .lap_score_chart_root
+                    .lap_score_footer_start
                     .dummy 
                     .bar.bar-end
                     .dummy 
@@ -152,7 +152,7 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
                     .bar.bar-center.bar-end
                     .score-bg.score-bg-r.score-bg-b 
                     .dummy 
-                .template#lap_score_row
+                .template-lap_score#lap_score_row
                     .dummy 
                     .dummy 
                     .bar 
@@ -164,26 +164,13 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
 
                     .name
 
-                    .picto 
-                        img(src='assets/icon/swim.png')
-                    .swim.stack_bar 
-                    .score-bg.score-bg-l 
-                    .score-bg.score-bg-r 
-                    .dummy 
-
-                    .picto 
-                        img(src='assets/icon/bike.png')
-                    .bike.stack_bar 
-                    .score-bg.score-bg-l 
-                    .score-bg.score-bg-r 
-                    .dummy 
-
-                    .picto 
-                        img(src='assets/icon/run.png')
-                    .run.stack_bar 
-                    .score-bg.score-bg-l 
-                    .score-bg.score-bg-r 
-                    .dummy 
+                    .template-lap_score_sub_1#lap_score_sub
+                        .picto 
+                            img(src='assets/icon/none.png')
+                        .lap_name.lap_kind.stack_bar 
+                        .score-bg.score-bg-l 
+                        .score-bg.score-bg-r 
+                        .dummy
 
         section#share-list 
             ul.share-container

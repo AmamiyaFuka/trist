@@ -1,6 +1,9 @@
 import BootstrapTemplate from "./bootstrap_template.mjs";
 
 export default class LapScoreSummary {
+	/** @type {Element} */
+	container;
+
 	/** @type {BootstrapTemplate} */
 	#row_templater;
 	/** @type {Element} */
@@ -35,7 +38,7 @@ export default class LapScoreSummary {
 			while (item.firstChild) row.appendChild(item.firstChild);
 		});
 
-
+		this.container = container;
 		this.#laps = laps;
 		this.#member_data = member_data;
 
@@ -51,6 +54,8 @@ export default class LapScoreSummary {
 	}
 
 	update() {
+		if (this.#member_data.length < 1) return false;
+
 		this.clear();
 
 		this.#member_data
@@ -84,5 +89,7 @@ export default class LapScoreSummary {
 
 				while (row.firstElementChild) this.#root_element.insertBefore(row.firstElementChild, this.#insert_position);
 			});
+
+		return true;
 	}
 }
