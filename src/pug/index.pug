@@ -143,34 +143,7 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
                         data-bs-toggle='tooltip' 
                         data-bs-placement='top' 
                         data-bs-title='レース結果を母集団とした偏差値です')
-                .lap_score_chart_root
-                    .lap_score_footer_start
-                    .dummy 
-                    .bar.bar-end
-                    .dummy 
-                    .score-bg.score-bg-l.score-bg-b 
-                    .bar.bar-center.bar-end
-                    .score-bg.score-bg-r.score-bg-b 
-                    .dummy 
-                .template-lap_score#lap_score_row
-                    .dummy 
-                    .dummy 
-                    .bar 
-                    .dummy 
-                    .score-bg.score-bg-l 
-                    .bar.bar-center 
-                    .score-bg.score-bg-r 
-                    .dummy
-
-                    .name
-
-                    .template-lap_score_sub_1#lap_score_sub
-                        .picto 
-                            img(src='assets/icon/none.png')
-                        .lap_name.lap_kind.stack_bar 
-                        .score-bg.score-bg-l 
-                        .score-bg.score-bg-r 
-                        .dummy
+                include ../template/lap_score_summary.pug
 
         section#share-list 
             ul.share-container

@@ -110,6 +110,8 @@ const draw_summaries = () => {
 			root.parentElement.classList.add('d-none');
 		}
 	}
+
+	g.summaries.forEach(s => s.container.classList[s.update() ? 'remove' : 'add']('d-none'));
 };
 
 /**
@@ -123,9 +125,6 @@ const draw_all = () => {
 		});
 
 	draw_summaries();
-	g.summaries.forEach(s => {
-		s.container.classList[s.update() ? 'remove' : 'add']('d-none');
-	});
 };
 
 /**
@@ -396,14 +395,13 @@ window.addEventListener('load', () => {
 				throw new Error('Unset data-member-update-mode');
 			}
 
+			update_search_string();
+
 			// 関係する要素の再描画処理
 			g.laps.all.forEach(lap => {
 				g.context[lap]?.chart?.update();
 				draw_member_ranking(lap);
 			});
-
-			update_search_string();
-
 			draw_summaries();
 		});
 

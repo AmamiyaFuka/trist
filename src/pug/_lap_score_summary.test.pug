@@ -7,7 +7,7 @@ html(lang='ja')
         link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css')
         link(rel='stylesheet' href='css/styles.css?' + now)
 
-        script(src='js/lap_score_summary_test.mjs?' + now type='module')
+        script(src='js/lap_score_summary.test.mjs?' + now type='module')
 
     body
         #view
@@ -20,7 +20,7 @@ html(lang='ja')
                         data-bs-placement='top' 
                         data-bs-title='レース結果を母集団とした偏差値です')
                 .lap_score_chart_root
-                    .dummy 
+                    .dummy.gap
                     .dummy 
                     .bar 
                     .dummy 
@@ -84,7 +84,7 @@ html(lang='ja')
                     .score-bg.score-bg-r 
                     .dummy 
 
-                    div
+                    .gap
                     .dummy 
                     .bar.bar-end
                     .dummy 
@@ -102,34 +102,7 @@ html(lang='ja')
                         data-bs-toggle='tooltip' 
                         data-bs-placement='top' 
                         data-bs-title='レース結果を母集団とした偏差値です')
-                .lap_score_chart_root
-                    .lap_score_footer_start
-                    .dummy 
-                    .bar.bar-end
-                    .dummy 
-                    .score-bg.score-bg-l.score-bg-b 
-                    .bar.bar-center.bar-end
-                    .score-bg.score-bg-r.score-bg-b 
-                    .dummy 
-                .template-lap_score#lap_score_row
-                    .dummy 
-                    .dummy 
-                    .bar 
-                    .dummy 
-                    .score-bg.score-bg-l 
-                    .bar.bar-center 
-                    .score-bg.score-bg-r 
-                    .dummy
-
-                    .name
-
-                    .template-lap_score_sub_1#lap_score_sub
-                        .picto 
-                            img(src='assets/icon/none.png')
-                        .lap_name.lap_kind.stack_bar 
-                        .score-bg.score-bg-l 
-                        .score-bg.score-bg-r 
-                        .dummy
+                include ../template/lap_score_summary.pug
 
 
 
