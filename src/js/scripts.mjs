@@ -636,16 +636,16 @@ window.addEventListener('load', () => {
 				.finally(() => navigator.clipboard.writeText(window.location.href))
 				.catch(err => {
 					console.log(err);
-					// iOS Safari向け。 navigator.clipboard ではなく、 navigator.clipboardData を使う
+					// iOS Safari向け。 navigator.clipboard.writeText ではなく、 navigator.clipboard.write を使う
 					navigator.clipboard.write([new ClipboardItem({ 'text/plain': new Blob['url'] })]);
 				})
-				.then(() => 'URLをコピーしました')
+				.then(() => 'シェアリンクをコピーしました')
 				.catch(err => {
 					console.log(err);
-					'URLのコピーに失敗しました';
+					return 'シェアリンクのコピーに失敗しました<br>別の方法でシェアしてください';
 				})
 				.then(message => {
-					hide_toast.querySelector('.toast-message').textContent = message;
+					hide_toast.querySelector('.toast-message').innerHTML = message;
 					hide_toast_bootstrap.show();
 				});
 
