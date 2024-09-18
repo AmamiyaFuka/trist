@@ -209,7 +209,7 @@ const draw_lap_score_summary = (root) => {
 			const row = templater.generate('lap_score_row', {
 				'.name': member.display_name,
 			});
-			
+
 			g.laps.sub.forEach(lap => {
 				if (!member.stats) return;
 				const v = member.stats[lap]?.score;
@@ -594,7 +594,7 @@ window.addEventListener('load', () => {
 			const races = group_by_year[year];
 
 			/** @type {Element} */
-			const divider = templater.generate('race_list_divider_template',{
+			const divider = templater.generate('race_list_divider_template', {
 				'.year_value': year,
 			});
 			container.appendChild(divider);
@@ -630,12 +630,20 @@ window.addEventListener('load', () => {
 					if (result.state === "granted" || result.state === "prompt") return;
 					throw 'permission request failed.';
 				})
-				// Safariは clipboard.writeText は出来るが、permissions.query はできない
-				// Chromeは permission.query は出来るし、特にAndroidでは clipboard.writeText より前に実行する
-				// permission.query の結果にかかわらず clipboard.writeText を試すことで両方に対応する
+				.catch(err => {
+					console.log(err);
+				})
 				.finally(() => navigator.clipboard.writeText(window.location.href))
+				.catch(err => {
+					console.log(err);
+					// iOS Safari向け。 navigator.clipboard ではなく、 navigator.clipboardData を使う
+					navigator.clipboard.write([new ClipboardItem({ 'text/plain': new Blob['url'] })]);
+				})
 				.then(() => 'URLをコピーしました')
-				.catch(() => 'URLのコピーに失敗しました')
+				.catch(err => {
+					console.log(err);
+					'URLのコピーに失敗しました';
+				})
 				.then(message => {
 					hide_toast.querySelector('.toast-message').textContent = message;
 					hide_toast_bootstrap.show();
