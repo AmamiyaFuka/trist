@@ -8,18 +8,6 @@ import Utils from './utils.mjs';
 
 const templater = new BootstrapTemplate();
 const color_pallets = new ColorPallets();
-const query_manager = new QueryManager(window);
-
-
-/** @typedef {'record'|'swim'|'bike'|'run'} Lap */
-
-/** @type {Array<Lap>} */
-const sub_laps = ['swim', 'bike', 'run']
-/** @type {Array<Lap>} */
-const all_laps = ['record', ...sub_laps];
-
-const data_manager = new DataManagerTri(all_laps);
-
 
 
 /**
@@ -34,45 +22,70 @@ const data_manager = new DataManagerTri(all_laps);
 /**
  * @typedef GlobalVars
  * @property {string} race レースID, fuji2024など
- * @property {Course} course
+ * @property {{all: Array<Lap>, sub: Array<Lap>, main: Lap}} laps
  * @property {Object.<Lap, LapResultContext>} context
+ * @property {Course} course
+ * @property {DataManagerTri} result
  */
 
 /** @type {GlobalVars} */
 const g = {
-	race: 'sample',
+	race: '',
+	laps: {
+		all: [],
+		sub: [],
+		main: '',
+	},
+	context: {},
 	course: {},
-	context: Object.fromEntries(all_laps.map(lap => [lap, {}])),
+	result: {},
 };
 
-{
+/**
+ * データは先行読み込みするため、即時実行する
+ * @returns {Promise}
+ */
+const initializer = (async () => {
+	/** @typedef {'record'|'swim'|'bike'|'run'} Lap */
+
+	/** @type {Array<Lap>} */
+	const default_laps = ['record', 'swim', 'bike', 'run'];
+	const default_main_lap = 'record';
+
+
+	const query_manager = new QueryManager(window);
 	const q = query_manager.getQueryParameter();
-	g.race = q.race ?? 'sample';
-}
 
+	g.race = q.race;
 
-const data_async = import(`/assets/result/${g.race}.json`, { with: { type: 'json' } })
-	.then(({ default: json }) => {
-		g.course = json.course;
-		data_manager.setData(json.result);
+	return import(`/assets/result/${g.race ?? 'sample'}.json`, { with: { type: 'json' } })
+		.then(({ default: { course, result } }) => {
+			g.course = course;
+			g.laps.all = g.course.laps?.keys ?? default_laps;
+			g.laps.main = g.course.laps?.main ?? default_main_lap;
+			g.laps.sub = g.laps.all.filter(x => x !== g.laps.main);
 
-		const initial_member_ids = [query_manager.getQueryParameter().members].flat();
-		data_manager.setMembers(json.result.filter(x => initial_member_ids.includes(x.number)));
+			g.context = Object.fromEntries(g.laps.all.map(lap => [lap, {}]));
 
-		return json.result;
-	});
+			g.result = new DataManagerTri(course.laps ?? g.laps.all);
+			g.result.setData(result);
+
+			const initial_member_ids = [q.members].flat();
+			g.result.setMembers(result.filter(x => initial_member_ids.includes(x.number)));
+		});
+})();
 
 /**
  * 現在の表示状態をsearch文字列に反映させる
  */
 const update_search_string = () => {
-	const query = query_manager.setQueryParameter(g.race === 'sample' ? {} : {
+	const query = query_manager.setQueryParameter(g.race ? {
 		race: g.race,
-		members: data_manager.member_data.map(x => x.number),
-	});
+		members: g.result.member_data.map(x => x.number),
+	} : {});
 
 	// Xシェアリンクを更新
-	const text = g.race === 'sample' ? 'Trist' : encodeURIComponent(g.course.name + 'のリザルト');
+	const text = g.race ? encodeURIComponent(g.course.name + 'のリザルト') : 'Trist';
 	const url = 'https://trist.amamiya-studio.com/' + query;
 	document.querySelector('#share-x-link')
 		.setAttribute('href', `https://x.com/intent/tweet?text=${text}&url=${url}`);
@@ -87,7 +100,7 @@ const draw_summaries = () => {
 		//ラップタイムサマリー
 		const root = document.querySelector('#lap_time_chart');
 		const template = document.querySelector('#lap_time_row');
-		if (data_manager.member_data.length > 0) {
+		if (g.result.member_data.length > 0) {
 			draw_lap_time_summary(root, template);
 
 			root.parentElement.classList.remove('d-none');
@@ -101,7 +114,7 @@ const draw_summaries = () => {
 		//ラップタイムスコア
 		const root = document.querySelector('#lap_score_chart');
 		const template = document.querySelector('#lap_score_row');
-		if (data_manager.member_data.length > 0) {
+		if (g.result.member_data.length > 0) {
 			draw_lap_score_summary(root, template);
 
 			root.parentElement.classList.remove('d-none');
@@ -115,7 +128,7 @@ const draw_summaries = () => {
  * すべてのラップパネルのチャート、ランキングと、サマリーパネルを描画する
  */
 const draw_all = () => {
-	all_laps
+	g.laps.all
 		.forEach(x => {
 			draw_chart(x);
 			draw_member_ranking(x);
@@ -136,13 +149,13 @@ const draw_lap_time_summary = (root, template) => {
 	// 比較値
 	const current_time = {};
 
-	data_manager.member_data
+	g.result.member_data
 		.sort((a, b) => a.stats.record.time - b.stats.record.time)
 		.forEach(member => {
 			const row = template.cloneNode(true);
 
 			row.querySelector('.name').textContent = member.display_name;
-			sub_laps.forEach(lap => {
+			g.laps.sub.forEach(lap => {
 				const v = member.stats?.[lap]?.time;
 
 				if (v) {
@@ -167,8 +180,8 @@ const draw_lap_time_summary = (root, template) => {
 	const base_time = ((() => {
 		let sum = 0;
 		let count = 0;
-		data_manager.member_data.forEach(member => {
-			sub_laps
+		g.result.member_data.forEach(member => {
+			g.laps.sub
 				.filter(lap => member.stats[lap].time)
 				.forEach(lap => {
 					sum += member.stats[lap].time;
@@ -179,7 +192,7 @@ const draw_lap_time_summary = (root, template) => {
 	}))();
 	// current_time のうち一番小さい数値（または代替タイム）を 1fr にする
 	const base_width = Math.min(...Object.values(current_time).filter(x => x).concat(base_time));
-	root.style.gridTemplateColumns = ['auto', ...sub_laps.map(k => (current_time[k] || base_time) / base_width + 'fr'), '0.5fr'].join(' 1px ');
+	root.style.gridTemplateColumns = ['auto', ...g.laps.sub.map(k => (current_time[k] || base_time) / base_width + 'fr'), '0.5fr'].join(' 1px ');
 	// 出力例: auto 1px 1fr 1px 1.5fr 1px 1.3fr 1px 0.5fr;
 };
 
@@ -194,13 +207,13 @@ const draw_lap_score_summary = (root, template) => {
 	const insert_position = root.querySelector('#lap_score_footer_start');
 	while (root.firstElementChild != insert_position) root.removeChild(root.firstElementChild);
 
-	data_manager.member_data
+	g.result.member_data
 		.sort((a, b) => a.stats.record.time - b.stats.record.time)
 		.forEach((member, i) => {
 			const row = template.cloneNode(true);
 
 			row.querySelector('.name').textContent = member.display_name;
-			sub_laps.forEach(lap => {
+			g.laps.sub.forEach(lap => {
 				if (!member.stats) return;
 				const v = member.stats[lap]?.score;
 				const elem = row.querySelector('.stack_bar.' + lap);
@@ -239,7 +252,7 @@ const draw_member_ranking = (lap) => {
 	let front = null;
 	const parent = g.context[lap].panel.querySelector('ul.ranking');
 
-	data_manager.member_data
+	g.result.member_data
 		.map((member, i) => ({ color: color_pallets.indexOf(i), display: member.display_name, time: member.stats[lap].time }))
 		.sort((a, b) => a.time - b.time)
 		.map(x => {
@@ -269,7 +282,7 @@ const draw_chart = (lap) => {
 
 	const time_step_sec = 600;
 
-	const stats = data_manager.time_ranking_data[lap].stats;
+	const stats = g.result.time_ranking_data[lap].stats;
 	if (stats.count < 2) return;
 
 	const time_min = Math.floor(stats.time.min / time_step_sec) * time_step_sec;
@@ -283,7 +296,7 @@ const draw_chart = (lap) => {
 			tension: 0.05,
 			pointRadius: 0,
 			pointHitRadius: 0,
-			data: data_manager.time_ranking_data[lap].data,
+			data: g.result.time_ranking_data[lap].data,
 			parsing: { xAxisKey: 'time', yAxisKey: 'count' },
 			// backgroundColor: 'rgb(000, 111, 222)',
 			order: 1000,
@@ -292,7 +305,7 @@ const draw_chart = (lap) => {
 			showLine: false,
 			pointRadius: 0,
 			pointHitRadius: 0,
-			data: data_manager.time_ranking_data[lap].stats.density,
+			data: g.result.time_ranking_data[lap].stats.density,
 			parsing: { xAxisKey: 'time', yAxisKey: 'count' },
 			order: 1001,
 			yAxisID: 'y_density',
@@ -300,7 +313,7 @@ const draw_chart = (lap) => {
 			fill: true,
 		}, {
 			showLine: false,
-			data: data_manager.member_data,
+			data: g.result.member_data,
 			parsing: { xAxisKey: `stats.${lap}.time`, yAxisKey: `stats.${lap}.ranking` },
 			order: 1,
 			pointRadius: 8,
@@ -401,26 +414,6 @@ window.addEventListener('load', () => {
 
 	templater.init(document);
 
-	{
-		const parent = document.querySelector('#view');
-		const position = document.querySelector('#panel_positioner');
-
-		const lap_names = {
-			record: '総合',
-			swim: 'スイム',
-			bike: 'バイク',
-			run: 'ラン',
-		};
-		all_laps.forEach(lap => {
-			const panel = templater.generate('lap_panel', { '.lap_name': lap_names[lap] });
-			panel.classList.add(lap);
-
-			g.context[lap].panel = panel;
-			g.context[lap].canvas = panel.querySelector(`canvas`);
-			parent.insertBefore(panel, position);
-		});
-	}
-
 	// メンバー追加・削除要素作成
 	const active_member_list_element = document.querySelector('#member_list');
 	const new_member_list_element = document.querySelector('#new_member_list');
@@ -451,17 +444,17 @@ window.addEventListener('load', () => {
 				new_member_list_element.removeChild(elem);
 				active_member_list_element.appendChild(elem);
 
-				data_manager.addMember(member_data);
+				g.result.addMember(member_data);
 			} else if (mode === 'remove') {
 				active_member_list_element.removeChild(elem);
 
-				data_manager.removeMember(member_data);
+				g.result.removeMember(member_data);
 			} else {
 				throw new Error('Unset data-member-update-mode');
 			}
 
 			// 関係する要素の再描画処理
-			all_laps.forEach(lap => {
+			g.laps.all.forEach(lap => {
 				g.context[lap]?.chart?.update();
 				draw_member_ranking(lap);
 			});
@@ -475,15 +468,28 @@ window.addEventListener('load', () => {
 	};
 
 
-	data_async
-		.then(result => {
-			// 初期メンバーリスト要素を作る
-			data_manager.member_data.map(d => generate_member_list_element(d, 'remove'))
-				.forEach(elem => active_member_list_element.appendChild(elem));
+	initializer
+		.then(() => {
+			// メインパネルの作成
+			const parent = document.querySelector('#view');
+			const position = document.querySelector('#panel_positioner');
 
-			return result;
+			const lap_names = {
+				record: '総合',
+				swim: 'スイム',
+				bike: 'バイク',
+				run: 'ラン',
+			};
+			g.laps.all.forEach(lap => {
+				const panel = templater.generate('lap_panel', { '.lap_name': lap_names[lap] });
+				panel.classList.add(lap);
+
+				g.context[lap].panel = panel;
+				g.context[lap].canvas = panel.querySelector(`canvas`);
+				parent.insertBefore(panel, position);
+			});
 		})
-		.then(result => {
+		.then(() => {
 			// ヘッダー情報としてレース情報を格納する
 			document.querySelector('title').textContent = `${g.course.name} :: Trist`;
 
@@ -492,32 +498,34 @@ window.addEventListener('load', () => {
 				`${new Date(g.course.starttime).toLocaleString('ja-JP')} スタート`,
 				`場所：${g.course.locale} ${g.course.weather}`,
 				`${g.course.category} distance`,
-				sub_laps.map(lap => `${lap} ${g.course.distance[lap]}km`).join(', '),
+				g.laps.sub.map(lap => `${lap} ${g.course.distance[lap]}km`).join(', '),
 			].forEach(text => {
 				const p = document.createElement('p');
 				p.textContent = text;
 				course_summary.appendChild(p);
 			});
-			return result;
 		})
-		.then(result => {
+		.then(() => {
 			// 各Panelにレース名をいれる（薄字のやつ）
 			Array.from(document.querySelectorAll('.course_name')).forEach(elem => elem.textContent = g.course.name);
 
 			// 種目別ビューの距離をいれる
-			sub_laps.forEach(lap => g.context[lap].panel.querySelector(`.distance`).textContent = g.course.distance[lap] + ' km');
+			g.laps.sub.forEach(lap => g.context[lap].panel.querySelector(`.distance`).textContent = g.course.distance[lap] + ' km');
 
 			// 総合は距離の代わりに、ディタンスカテゴリ
-			g.context.record.panel.querySelector('.distance').textContent = g.course.category;
+			g.context[g.laps.main].panel.querySelector('.distance').textContent = g.course.category;
 
 
 			document.querySelector('#share-x-link')
 				.setAttribute('href', `https://x.com/intent/tweet?text=${encodeURIComponent(g.course.name + 'のリザルト')}&url=${encodeURIComponent(window.location.href)}`);
-
-			return result;
 		})
-		.then(result => {
-			const groups = result.map(d => d.section).filter(x => x).filter((x, i, a) => a.indexOf(x) === i);
+		.then(() => {
+			// Nav内の初期メンバーリスト要素を作る
+			g.result.member_data.map(d => generate_member_list_element(d, 'remove'))
+				.forEach(elem => active_member_list_element.appendChild(elem));
+		})
+		.then(() => {
+			// Groupフィルタ要素を作る
 			const s = document.querySelector('#group');
 
 			{
@@ -528,51 +536,48 @@ window.addEventListener('load', () => {
 				s.appendChild(option);
 			}
 
-			groups.sort().forEach(k => {
+			g.result.sections.sort().forEach(group_name => {
 				const option = document.createElement('option');
-				option.value = k;
-				option.textContent = k;
+				option.value = group_name;
+				option.textContent = group_name;
 				s.appendChild(option);
 			});
 			s.setAttribute('size', s.childElementCount);
-
-			return result;
 		})
-		.then(result => {
-			// Groupフィルタ
+		.then(() => {
+			// GroupフィルタItemの動作定義
 			const group = document.querySelector('#group');
 
 			group.addEventListener('change', () => {
 				if (group.firstElementChild.selected) {
-					data_manager.setFilter(() => true);
+					g.result.setFilter(() => true);
 				} else {
 					const values = Array.from(group.querySelectorAll('option')).filter(x => x.selected).map(x => x.value);
 					if (values.length === 0) return;
 
-					data_manager.setFilter(k => values.includes(k.section));
+					g.result.setFilter(k => values.includes(k.section));
 				}
 				draw_all();
 			});
-
-			return result;
 		})
-		.then(result => {
-			// メンバー追加処理
+		.then(() => {
+			// メンバー追加フォーム
 			document.querySelector('#new_member_input').addEventListener('input', event => {
 				new_member_list_element.textContent = '';
 
 				const v = event.target.value;
 				if (v === '') return;
 
-				result
-					.filter(x => x.number === v || x.display_name.includes(v))
-					// ToDo: 追加済みメンバーとの重複チェックをここにいれる
+				g.result
+					.getResults(x => x.number === v || x.display_name.includes(v))
+					.filter(x => !g.result.member_data.includes(x))
 					.map(x => generate_member_list_element(x, 'add'))
 					.forEach(x => new_member_list_element.appendChild(x));
 			});
 		})
 		.then(() => draw_all());
 
+	//-- ここから、リザルト情報が読み込まれていなくても可能な処理 --//
 	{
 		// レースリスト		
 		const container = document.querySelector('#race_list');

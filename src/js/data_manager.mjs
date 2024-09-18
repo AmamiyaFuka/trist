@@ -58,6 +58,9 @@ export default class DataManagerTri {
 	/** @type {Array<Lap>} */
 	#laps = ['record', 'swim', 'bike', 'run'];
 
+	/** @type {Array<string>} */
+	sections = [];
+
 	/**
 	 * @param {Array<Lap>} laps
 	 */
@@ -88,6 +91,8 @@ export default class DataManagerTri {
 	setData(data) {
 		this.#data = data;
 		this.setFilter(() => true);
+
+		this.sections = data.map(d => d.section).filter((x, i, a) => a.indexOf(x) === i).filter(x => x !== null);
 		return this;
 	}
 
@@ -201,8 +206,7 @@ export default class DataManagerTri {
 	}
 
 	/**
-	 * メンバーを除去します
-	 * 
+	 * メンバーを除去します	 * 
 	 * @param {PersonResultTri} member
 	 * @returns {DataManagerTri}
 	 */
@@ -211,6 +215,13 @@ export default class DataManagerTri {
 		this.member_data.splice(i, 1);
 		return this;
 	}
+
+	/**
+	 * 条件に一致するデータを検索します
+	 * @param {(value: PersonResultTri, index: number, array: Array<PersonResultTri>) => boolean} predicate
+	 * @returns {Array<PersonResultTri>}
+	 */
+	getResults(predicate) { return this.#data.filter(predicate); }
 
 	/**
 	 * メンバーの stats を計算します
