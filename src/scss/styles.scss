@@ -220,21 +220,15 @@ section.panel {
 		content: ')';
 	}
 
-	button {
-		svg {
+	button[data-member-update-mode='add'] {
+		.user-minus {
 			display: none;
 		}
 	}
 
-	button[data-member-update-mode='add'] {
-		svg.user-plus {
-			display: block;
-		}
-	}
-
 	button[data-member-update-mode='remove'] {
-		svg.user-minus {
-			display: block;
+		.user-plus {
+			display: none;
 		}
 	}
 }
