@@ -44,6 +44,8 @@ export default class LapScoreSummary {
 
 		this.#root_element = container.querySelector('.lap_score_chart_root');
 		this.#insert_position = container.querySelector('.lap_score_footer_start');
+		
+		this.#root_element.style.setProperty('--lap-count', laps.length);
 
 		this.#row_templater = new BootstrapTemplate();
 		this.#row_templater.init(container, row_class_name);

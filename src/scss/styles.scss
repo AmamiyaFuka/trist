@@ -278,6 +278,8 @@ section.panel {
 	--score-bg-color: hsl(43deg 100% 80%);
 	--border-color: darkgray;
 
+	--lap-count: 3;
+
 	display: grid;
 	/** 
 	 * スコアの注力領域はここで調整する
@@ -292,7 +294,7 @@ section.panel {
 
 	.bar {
 		border-left: black solid 1px;
-		grid-row: span 4;
+		grid-row: span calc(var(--lap-count) + 1);
 
 		&.bar-center {
 			z-index: 2;
@@ -304,7 +306,7 @@ section.panel {
 	}
 
 	.name {
-		grid-row: span 3;
+		grid-row: span var(--lap-count);
 	}
 
 	.picto {
