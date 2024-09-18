@@ -10,15 +10,16 @@ export default class BootstrapTemplate {
 	 * テンプレートは class に "template" が指定されています
 	 * このメソッドは、documentがloadされた直後に実行されることを期待しています
 	 * @param {Document|HTMLElement} document 
+	 * @param {string} class_name
 	 */
-	init(document) {
+	init(document, class_name) {
 		// テンプレート内にテンプレートが含まる構造がありえるので
 		// 最も子となる要素から再帰的に登録する
-		const template_element_list = Array.from(document.querySelectorAll('.template'));
+		const template_element_list = Array.from(document.querySelectorAll('.' + class_name));
 		template_element_list.forEach(template_element => {
 			this.init(template_element);
 
-			template_element.classList.remove('template');
+			template_element.classList.remove(class_name);
 			const id = template_element.getAttribute('id');
 			if (!id || id in this.#templates) return;
 			const elem = template_element.cloneNode(true);

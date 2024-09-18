@@ -1,0 +1,137 @@
+
+doctype html
+html(lang='ja')
+    head
+        title Lap score summary
+        // Core theme CSS (includes Bootstrap)
+        link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css')
+        link(rel='stylesheet' href='css/styles.css?' + now)
+
+        script(src='js/lap_score_summary_test.mjs?' + now type='module')
+
+    body
+        #view
+            section#mihon.panel.summary
+                h3.course_name Mt.富士トライアスロン2024
+                h2.marker-lap_time 
+                    | Score
+                    span.btn.bi-info-circle(style='padding: 0.2rem 0.5rem; vertical-align: baseline;'
+                        data-bs-toggle='tooltip' 
+                        data-bs-placement='top' 
+                        data-bs-title='レース結果を母集団とした偏差値です')
+                .lap_score_chart_root
+                    .dummy 
+                    .dummy 
+                    .bar 
+                    .dummy 
+                    .score-bg.score-bg-l.score-bg-t 
+                    .bar.bar-center 
+                    .score-bg.score-bg-r.score-bg-t
+                    .dummy
+
+                    .name 昭和 太郎
+
+                    .picto 
+                        img(src='assets/icon/swim.png')
+                    .swim.stack_bar(style='width: 178%;') 62
+                    .score-bg.score-bg-l 
+                    .score-bg.score-bg-r 
+                    .dummy 
+
+                    .picto 
+                        img(src='assets/icon/bike.png')
+                    .bike.stack_bar(style='width: 171%;') 60
+                    .score-bg.score-bg-l 
+                    .score-bg.score-bg-r 
+                    .dummy 
+
+                    .picto 
+                        img(src='assets/icon/run.png')
+                    .run.stack_bar(style='width:176%;') 62
+                    .score-bg.score-bg-l 
+                    .score-bg.score-bg-r 
+                    .dummy 
+                    
+                    .dummy 
+                    .dummy 
+                    .bar 
+                    .dummy 
+                    .score-bg.score-bg-l 
+                    .bar.bar-center 
+                    .score-bg.score-bg-r
+                    .dummy
+
+                    .name 平成 次郎
+
+                    .picto 
+                        img(src='assets/icon/swim.png')
+                    .swim.stack_bar(style='width: 143%;') 50
+                    .score-bg.score-bg-l 
+                    .score-bg.score-bg-r 
+                    .dummy 
+
+                    .picto 
+                        img(src='assets/icon/bike.png')
+                    .bike.stack_bar(style='width: 106%;') 36
+                    .score-bg.score-bg-l 
+                    .score-bg.score-bg-r 
+                    .dummy 
+
+                    .picto 
+                        img(src='assets/icon/run.png')
+                    .run.stack_bar(style='width:145%;') 51
+                    .score-bg.score-bg-l 
+                    .score-bg.score-bg-r 
+                    .dummy 
+
+                    div
+                    .dummy 
+                    .bar.bar-end
+                    .dummy 
+                    .score-bg.score-bg-l.score-bg-b 
+                    .bar.bar-center.bar-end
+                    .score-bg.score-bg-r.score-bg-b 
+                    .dummy 
+
+            
+            section#generated_by_template.panel.summary
+                h3.course_name 
+                h2.marker-lap_time 
+                    | スコア
+                    span.btn.bi-info-circle(style='padding: 0.2rem 0.5rem; vertical-align: baseline;'
+                        data-bs-toggle='tooltip' 
+                        data-bs-placement='top' 
+                        data-bs-title='レース結果を母集団とした偏差値です')
+                .lap_score_chart_root
+                    .lap_score_footer_start
+                    .dummy 
+                    .bar.bar-end
+                    .dummy 
+                    .score-bg.score-bg-l.score-bg-b 
+                    .bar.bar-center.bar-end
+                    .score-bg.score-bg-r.score-bg-b 
+                    .dummy 
+                .template-lap_score#lap_score_row
+                    .dummy 
+                    .dummy 
+                    .bar 
+                    .dummy 
+                    .score-bg.score-bg-l 
+                    .bar.bar-center 
+                    .score-bg.score-bg-r 
+                    .dummy
+
+                    .name
+
+                    .template-lap_score_sub_1#lap_score_sub
+                        .picto 
+                            img(src='assets/icon/none.png')
+                        .lap_name.lap_kind.stack_bar 
+                        .score-bg.score-bg-l 
+                        .score-bg.score-bg-r 
+                        .dummy
+
+
+
+        // Bootstrap core JS
+        script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js')
