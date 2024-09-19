@@ -236,7 +236,7 @@ export default class DataManagerTri {
 			const { data, stats } = this.time_ranking_data[lap];
 
 			const member_lap_time = member?.stats?.[lap]?.time ?? member[lap + '_sec'];
-			const ranking = data.findIndex(({ time }) => time > member_lap_time) + 1;
+			const ranking = data.findIndex(({ time }) => time >= member_lap_time) + 1;
 			const percentile = ranking / stats.count;
 			const score = (stats.average - member_lap_time) / stats.stdev * 10 + 50;
 
