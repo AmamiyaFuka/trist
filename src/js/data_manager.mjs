@@ -16,15 +16,7 @@
  * @property {string} number
  * @property {string} display_name
  * @property {string?} section
- * @property {Object.<string, TimeStats>?} stats
- * 
- * @typedef ResultTri
- * @property {number} record_sec
- * @property {number} swim_sec
- * @property {number} bike_sec
- * @property {number} run_sec
- * 
- * @typedef {PersonData & ResultTri} PersonResultTri
+ * @property {Object.<string, TimeStats>} stats
  */
 
 /** 
@@ -46,7 +38,7 @@
 
 
 export default class DataManagerTri {
-	/** @type {Array<PersonResultTri>} */
+	/** @type {Array<PersonData>} */
 	#data = [];
 
 	/** @type {Array<PersonData>} */
@@ -55,20 +47,20 @@ export default class DataManagerTri {
 	/** @type {Object.<string, ChartDataItem>} */
 	time_ranking_data = {};
 
-	/** @type {Array<Lap>} */
-	#laps = ['record', 'swim', 'bike', 'run'];
+	/** @type {Array<LapInfo>} */
+	#laps = [];
 
 	/** @type {Array<string>} */
 	sections = [];
 
 	/**
-	 * @param {Array<Lap>} laps
+	 * @param {Array<LapInfo>} laps
 	 */
 	constructor(laps) {
 		this.#laps = laps;
 
 		// time_ranking_data はすぐに参照できるように初期化する
-		this.time_ranking_data = Object.fromEntries(laps.map(lap => [lap, {
+		this.time_ranking_data = Object.fromEntries(laps.map(({name: lap}) => [lap, {
 			data: [],
 			stats: {
 				count: 0,
@@ -85,7 +77,7 @@ export default class DataManagerTri {
 	/**
 	 * 母集団を設定します
 	 * データの複製は作られないため、データがクラス外で変更された場合、予期しない結果を引き起こします
-	 * @param {Array<PersonResultTri>} data 
+	 * @param {Array<PersonData>} data 
 	 * @returns {DataManagerTri}
 	 */
 	setData(data) {
@@ -102,19 +94,10 @@ export default class DataManagerTri {
 	 * @returns {DataManagerTri}
 	 */
 	setFilter(predicate) {
-		// 将来的には、元データをsamplesのデータ構造にしたい
 		const filtered = this.#data.filter(predicate);
-		const samples = filtered.map(d => ({
-			...d,
-			stats: Object.fromEntries(this.#laps.map(lap => {
-				/** @type {number} */
-				const time = d[lap + '_sec'];
-				return [lap, { time }];
-			})),
-		}));
 
-		this.#laps.forEach(lap => {
-			const sorted_times = samples.map(d => d.stats[lap].time).filter(x => x).sort((a, b) => a - b);
+		this.#laps.forEach(({name: lap}) => {
+			const sorted_times = filtered.map(d => d.stats[lap]?.time).filter(x => x).sort((a, b) => a - b);
 
 			this.time_ranking_data[lap].data.splice(0, Infinity,
 				...sorted_times.map((time, i) => ({ time, count: i })))
@@ -185,7 +168,7 @@ export default class DataManagerTri {
 
 	/**
 	 * メンバーをセットします
-	 * @param {Array<PersonResultTri>} members 
+	 * @param {Array<PersonData>} members 
 	 * @returns {DataManagerTri}
 	 */
 	setMembers(members) {
@@ -197,7 +180,7 @@ export default class DataManagerTri {
 	/**
 	 * メンバーを追加します
 	 * updateを呼ばなくても、statsが更新されます
-	 * @param {PersonResultTri} member
+	 * @param {PersonData} member
 	 * @returns {DataManagerTri}
 	 */
 	addMember(member) {
@@ -207,7 +190,7 @@ export default class DataManagerTri {
 
 	/**
 	 * メンバーを除去します	 * 
-	 * @param {PersonResultTri} member
+	 * @param {PersonData} member
 	 * @returns {DataManagerTri}
 	 */
 	removeMember(member) {
@@ -218,8 +201,8 @@ export default class DataManagerTri {
 
 	/**
 	 * 条件に一致するデータを検索します
-	 * @param {(value: PersonResultTri, index: number, array: Array<PersonResultTri>) => boolean} predicate
-	 * @returns {Array<PersonResultTri>}
+	 * @param {(value: PersonData, index: number, array: Array<PersonData>) => boolean} predicate
+	 * @returns {Array<PersonData>}
 	 */
 	getResults(predicate) { return this.#data.filter(predicate); }
 
@@ -229,13 +212,13 @@ export default class DataManagerTri {
 	 * @returns {PersonData}
 	 */
 	#calculateMemberStats(member) {
-		this.#laps.forEach(lap => {
+		this.#laps.forEach(({name: lap}) => {
 			// ループの外で十分なはずなのに、ここにいれないとlint errorになる。きもちわるい
 			if (!(member.stats)) member.stats = {};
 
 			const { data, stats } = this.time_ranking_data[lap];
 
-			const member_lap_time = member?.stats?.[lap]?.time ?? member[lap + '_sec'];
+			const member_lap_time = member?.stats?.[lap]?.time;
 			const ranking = data.findIndex(({ time }) => time >= member_lap_time) + 1;
 			const percentile = ranking / stats.count;
 			const score = (stats.average - member_lap_time) / stats.stdev * 10 + 50;

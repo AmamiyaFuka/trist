@@ -127,9 +127,74 @@ const world_2023_yokohama = {
 	result_id: '176_2', output_file: 'world_2023_yokohama'
 };
 
+const kasumigaura_2024_m = {
+	course: {
+		name: '第5回 霞ヶ浦トライアスロンフェスタ 2024 ミドル',
+		short_name: '霞ヶ浦(mid)',
+		starttime: new Date('2024-09-15T08:00' + '+09:00').getTime(),
+		weather: '晴れ',
+		locale: '日本, 神奈川県',
+		url: 'https://kasumigaura-tf.com/',
+		category: 'middle',
+		laps: {
+			keys: [
+				{ name: 'record', range: 'middle', units: '' },
+				{ name: 'run-1', range: 5, units: 'km' },
+				{ name: 'bike', range: 71, units: 'km' },
+				{ name: 'run-2', range: 10.5, units: 'km' },
+			],
+			main: 'record',
+		},
+	},
+	result_id: '287_1', output_file: 'kasumigaura_2024_mid'
+};
+
+const kasumigaura_2024_s = {
+	course: {
+		name: '第5回 霞ヶ浦トライアスロンフェスタ 2024 スタンダード',
+		short_name: '霞ヶ浦(std)',
+		starttime: new Date('2024-09-15T08:00' + '+09:00').getTime(),
+		weather: '晴れ',
+		locale: '日本, 神奈川県',
+		url: 'https://kasumigaura-tf.com/',
+		category: 'standard distance',
+		laps: {
+			keys: [
+				{ name: 'record', range: 'standard', units: '' },
+				{ name: 'run-1', range: 3.0, units: 'km' },
+				{ name: 'bike', range: 40.6, units: 'km' },
+				{ name: 'run-2', range: 7.0, units: 'km' },
+			],
+			main: 'record',
+		},
+	},
+	result_id: '287_3', output_file: 'kasumigaura_2024_std'
+};
+
+const kasumigaura_2024_b = {
+	course: {
+		name: '第5回 霞ヶ浦トライアスロンフェスタ 2024 ビギナー',
+		short_name: '霞ヶ浦(bgn)',
+		starttime: new Date('2024-09-15T08:00' + '+09:00').getTime(),
+		weather: '晴れ',
+		locale: '日本, 神奈川県',
+		url: 'https://kasumigaura-tf.com/',
+		category: 'super-sprint distance',
+		laps: {
+			keys: [
+				{ name: 'record', range: 'super-sprint', units: '' },
+				{ name: 'run-1', range: 3.0, units: 'km' },
+				{ name: 'bike', range: 8.6, units: 'km' },
+				{ name: 'run-2', range: 3.5, units: 'km' },
+			],
+			main: 'record',
+		},
+	},
+	result_id: '287_5', output_file: 'kasumigaura_2024_bgn'
+};
 
 
-const target = world_2023_yokohama;
+const target = kasumigaura_2024_b;
 
 Promise.all([
 	Course.get(target.course),

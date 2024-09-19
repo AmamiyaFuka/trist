@@ -14,12 +14,18 @@ export default class LapTimeSummary {
 	#row_templater;
 	/** @type {HTMLElement} */
 	#root_element;
-	/** @type {Array<string>} */
+	/** @type {Array<LapInfo>} */
 	#laps;
 
-	/** @type {Array<any>} */
+	/** @type {Array<PersonResult>} */
 	#member_data;
 
+	/**
+	 * 
+	 * @param {Array<LapInfo>} laps 
+	 * @param {Array<PersonResult>} member_data 
+	 * @param {Element} container 
+	 */
 	constructor(laps, member_data, container) {
 		const row_class_name = 'template-lap_time_row';
 
@@ -29,7 +35,7 @@ export default class LapTimeSummary {
 		template_element.textContent = '';
 		[
 			'name',
-			...laps.map(lap => ['time', lap, lap.split('-')[0]].join(',')),
+			...laps.map(({ name: lap }) => ['time', lap, lap.split('-')[0]].join(',')),
 			'dummy'
 		].join('/time_bar/').split('/').forEach(class_names => {
 			const div = document.createElement('div');
@@ -37,7 +43,7 @@ export default class LapTimeSummary {
 			template_element.appendChild(div)
 		});
 
-		laps.forEach((lap, i) => {
+		laps.forEach(({ name: lap }, i) => {
 			const kind = lap.split('-')[0];
 			const div = document.createElement('div');
 			div.classList.add('stack_bar');
@@ -87,7 +93,7 @@ export default class LapTimeSummary {
 					'.name': member.display_name,
 				});
 
-				this.#laps.forEach(lap => {
+				this.#laps.forEach(({ name: lap }) => {
 					const v = member.stats?.[lap]?.time;
 
 					if (v) {
