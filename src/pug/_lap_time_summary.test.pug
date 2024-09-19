@@ -1,0 +1,85 @@
+
+doctype html
+html(lang='ja')
+    head
+        title Lap score summary
+        // Core theme CSS (includes Bootstrap)
+        link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css')
+        link(rel='stylesheet' href='css/styles.css?' + now)
+
+        script(src='js/lap_time_summary.test.mjs?' + now type='module')
+
+    body
+        #view
+            section#mihon.panel.summary
+                h3.course_name Mt.富士トライアスロン2024
+                h2.marker-lap_time タイム
+                .lap_time_chart(style="display: grid; \
+                    grid-auto-rows: 2ex 2.7rem; \
+                    row-gap: 0.1rem; \
+                    grid-template-columns: auto 1px 1fr 1px 3.10511fr 1px 1.73797fr 1px 0.5fr;")
+                    
+                    .name 昭和 太郎
+                    .time_bar 
+                    .time.swim 00:22:31
+                    .time_bar 
+                    .time.bike 01:09:55
+                    .time_bar
+                    .time.run 00:39:08
+                    .time_bar
+                    .dummy 
+
+                    .stack_bar.c0.swim(style='width: 100%;')
+                        img(src='assets/icon/swim.png')
+                    .stack_bar.c1.bike(style='width: 100%;')
+                        img(src='assets/icon/bike.png')
+                    .stack_bar.c2.run(style='width: 100%;')
+                        img(src='assets/icon/run.png')
+                    .dummy
+                    
+                    .name 平成 次郎
+                    .time_bar 
+                    .time.swim +1:58
+                    .time_bar 
+                    .time.bike +0:41
+                    .time_bar
+                    .time.run -1:36
+                    .time_bar
+                    .dummy 
+
+                    .stack_bar.c0.swim(style='width: 109%;')
+                        img(src='assets/icon/swim.png')
+                    .stack_bar.c1.bike(style='width: 101%;')
+                        img(src='assets/icon/bike.png')
+                    .stack_bar.c2.run(style='width: 96%;')
+                        img(src='assets/icon/run.png')
+                    .dummy
+                    
+                    .name 令和 三郎
+                    .time_bar 
+                    .time.swim +4:17
+                    .time_bar 
+                    .time.bike +5:55
+                    .time_bar
+                    .time.run -0:44
+                    .time_bar
+                    .dummy 
+
+                    .stack_bar.c0.swim(style='width: 119%;')
+                        img(src='assets/icon/swim.png')
+                    .stack_bar.c1.bike(style='width: 108%;')
+                        img(src='assets/icon/bike.png')
+                    .stack_bar.c2.run(style='width: 98%;')
+                        img(src='assets/icon/run.png')
+                    .dummy
+
+            
+            section.template_panel#test.panel.summary
+                h3.course_name 
+                h2.marker-lap_time タイム
+                include ../template/lap_time_summary.pug
+
+
+
+        // Bootstrap core JS
+        script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js')

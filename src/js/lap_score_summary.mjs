@@ -1,12 +1,18 @@
+//@ts-check
 import BootstrapTemplate from "./bootstrap_template.mjs";
 
+/**
+ * 各種目別のスコア（偏差値）を表示します
+ * @constructor
+ * @extends {Summary}
+ */
 export default class LapScoreSummary {
 	/** @type {Element} */
 	container;
 
 	/** @type {BootstrapTemplate} */
 	#row_templater;
-	/** @type {Element} */
+	/** @type {HTMLElement} */
 	#root_element;
 	/** @type {Element} */
 	#insert_position;
@@ -69,12 +75,13 @@ export default class LapScoreSummary {
 				this.#laps.forEach(lap => {
 					if (!member.stats) return;
 					const v = member.stats[lap]?.score;
+					/** @type {HTMLElement} */
 					const elem = row.querySelector('.stack_bar.' + lap);
 
 					// 幅の計算方法は styles.scss を参照のこと
 					const score_to_width = dev => Math.round(dev * 20 / 7) + '%';
 					if (v) {
-						elem.textContent = Math.round(v);
+						elem.textContent = Math.round(v).toString();
 						elem.style.width = score_to_width(v);
 					} else {
 						elem.textContent = '';

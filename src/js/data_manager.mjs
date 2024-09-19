@@ -92,7 +92,7 @@ export default class DataManagerTri {
 		this.#data = data;
 		this.setFilter(() => true);
 
-		this.sections = data.map(d => d.section).filter((x, i, a) => a.indexOf(x) === i).filter(x => x !== null);
+		this.sections = data.map(d => d.section).filter((x, i, a) => a.indexOf(x) === i).filter(x => x != null);
 		return this;
 	}
 

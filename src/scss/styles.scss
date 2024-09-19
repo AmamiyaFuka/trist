@@ -233,7 +233,17 @@ section.panel {
 	}
 }
 
-#lap_time_chart {
+.lap_time_chart {
+	--lap-count: 3;
+
+	img {
+		height: 1.3rem;
+	}
+
+	.name {
+		grid-column: 1;
+	}
+
 	.time_bar {
 		border-left: black solid 1px;
 		grid-row: span 2;
@@ -243,28 +253,33 @@ section.panel {
 		grid-row: span 2;
 	}
 
+
 	.stack_bar {
 		line-height: 2rem;
 		text-indent: 1em;
 
-		img {
-			height: 1.3rem;
-		}
+		// デフォルト値
+		color: gray;
+		--col-count: 0;
+		
+		&.swim { color: var(--swim-color); }
+		&.bike { color: var(--bike-color); }
+		&.run { color: var(--run-color); }
+		
+		&.c0 { --col-count: 0; }
+		&.c1 { --col-count: 1; }
+		&.c2 { --col-count: 2; }
+		&.c3 { --col-count: 3; }
+		&.c4 { --col-count: 4; }
+		&.c5 { --col-count: 5; }
+		&.c6 { --col-count: 6; }
+		&.c7 { --col-count: 7; }
+		&.c8 { --col-count: 8; }
+		&.c9 { --col-count: 9; }
 
-		&.swim {
-			color: var(--swim-color);
-			background: linear-gradient(transparent 1%, currentColor 1%, currentColor 100%);
-		}
+		--grad-start: calc(100% / var(--lap-count) * var(--col-count) + 1%);
 
-		&.bike {
-			color: var(--bike-color);
-			background: linear-gradient(transparent 34%, currentColor 34%, currentColor 100%);
-		}
-
-		&.run {
-			color: var(--run-color);
-			background: linear-gradient(transparent 67%, currentColor 67%, currentColor 100%);
-		}
+		background: linear-gradient(transparent var(--grad-start), currentColor var(--grad-start), currentColor 100%);
 	}
 
 	.time {
@@ -290,6 +305,11 @@ section.panel {
 	 */
 	grid-template-columns: auto auto 1px 1fr 0.42857fr 1px 0.42857fr 1fr;
 	row-gap: 0;
+
+	img {
+		/* 予防的処置 */
+		max-height: 5rem;
+	}
 
 	.gap {
 		height: 0.7rem;

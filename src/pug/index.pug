@@ -113,27 +113,7 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
             section#lap_time.panel.summary.d-none
                 h3.course_name 
                 h2.marker-lap_time タイム
-                #lap_time_chart(style="display: grid; \
-                    grid-auto-rows: 2ex 2.7rem; \
-                    row-gap: 0.1rem;")
-                .template#lap_time_row
-                    .name
-                    .time_bar 
-                    .time.swim 
-                    .time_bar 
-                    .time.bike
-                    .time_bar
-                    .time.run
-                    .time_bar
-                    .dummy 
-
-                    .stack_bar.swim
-                        img(src='assets/icon/swim.png')
-                    .stack_bar.bike
-                        img(src='assets/icon/bike.png')
-                    .stack_bar.run
-                        img(src='assets/icon/run.png')
-                    .dummy
+                include ../template/lap_time_summary.pug
 
             section#lap_score.panel.summary.d-none
                 h3.course_name 
