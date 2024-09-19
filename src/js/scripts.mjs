@@ -7,6 +7,7 @@ import DataManagerTri from './data_manager.mjs';
 import Utils from './utils.mjs';
 
 import LapScoreSummary from './lap_score_summary.mjs';
+import LapTimeSummary from './lap_time_summary.mjs';
 
 const templater = new BootstrapTemplate();
 const color_pallets = new ColorPallets();
@@ -99,18 +100,6 @@ const update_search_string = () => {
  * サマリーパネルを再描画する
  */
 const draw_summaries = () => {
-	{
-		//ラップタイムサマリー
-		const root = document.querySelector('#lap_time_chart');
-		if (g.result.member_data.length > 0) {
-			draw_lap_time_summary(root);
-
-			root.parentElement.classList.remove('d-none');
-		} else {
-			root.parentElement.classList.add('d-none');
-		}
-	}
-
 	g.summaries.forEach(s => s.container.classList[s.update() ? 'remove' : 'add']('d-none'));
 };
 
@@ -125,65 +114,6 @@ const draw_all = () => {
 		});
 
 	draw_summaries();
-};
-
-/**
- * ラップタイムサマリーテーブルを描画する
- * @param {Element} root 描画要素を配置するルートエレメント
- */
-const draw_lap_time_summary = (root) => {
-	// 初期化
-	root.textContent = '';
-
-	// 比較値
-	const current_time = {};
-
-	g.result.member_data
-		.sort((a, b) => a.stats.record.time - b.stats.record.time)
-		.forEach(member => {
-			const row = templater.generate('lap_time_row', {
-				'.name': member.display_name
-			});
-
-			g.laps.sub.forEach(lap => {
-				const v = member.stats?.[lap]?.time;
-
-				if (v) {
-					// 比較値が含まれている場合は、差分表示。いない場合は絶対値表示
-					const time = current_time[lap] ? Utils.sec_to_mss_with_sign(v - current_time[lap]) : Utils.sec_to_hhmmss(v);
-					// 比較値が含まれていない場合はセットする
-					current_time[lap] ||= v;
-
-					row.querySelector('.time.' + lap).textContent = time;
-					row.querySelector('.stack_bar.' + lap).style.width = Math.round(v * 100 / current_time[lap]) + '%';
-				} else {
-					row.querySelector('.stack_bar.' + lap).style.color = 'gray';
-				}
-			});
-
-			while (row.firstElementChild) root.appendChild(row.firstElementChild);
-		});
-
-
-
-	// データ欠落時の代替タイム
-	const base_time = ((() => {
-		let sum = 0;
-		let count = 0;
-		g.result.member_data.forEach(member => {
-			g.laps.sub
-				.filter(lap => member.stats[lap].time)
-				.forEach(lap => {
-					sum += member.stats[lap].time;
-					count++;
-				});
-		})
-		return sum / count;
-	}))();
-	// current_time のうち一番小さい数値（または代替タイム）を 1fr にする
-	const base_width = Math.min(...Object.values(current_time).filter(x => x).concat(base_time));
-	root.style.gridTemplateColumns = ['auto', ...g.laps.sub.map(k => (current_time[k] || base_time) / base_width + 'fr'), '0.5fr'].join(' 1px ');
-	// 出力例: auto 1px 1fr 1px 1.5fr 1px 1.3fr 1px 0.5fr;
 };
 
 /**
@@ -518,7 +448,10 @@ window.addEventListener('load', () => {
 		})
 		.then(() => {
 			// サマリー登録
-			g.summaries.push(new LapScoreSummary(g.laps.sub, g.result.member_data, document.querySelector('#lap_score')));
+			g.summaries.push(
+				new LapScoreSummary(g.laps.sub, g.result.member_data, document.querySelector('#lap_score')));
+			g.summaries.push(
+				new LapTimeSummary(g.laps.sub, g.result.member_data, document.querySelector('#lap_time')));
 		})
 		.then(() => draw_all());
 
