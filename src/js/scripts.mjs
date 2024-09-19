@@ -100,6 +100,8 @@ const update_search_string = () => {
  * サマリーパネルを再描画する
  */
 const draw_summaries = () => {
+	// サマリー前にメインタイムでソートする
+	g.result.member_data.sort((a, b) => a.stats[g.laps.main].time - b.stats[g.laps.main].time);
 	g.summaries.forEach(s => s.container.classList[s.update() ? 'remove' : 'add']('d-none'));
 };
 
