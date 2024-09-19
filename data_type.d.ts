@@ -4,25 +4,32 @@ interface PersonResult {
 	display_name: string;
 	section: string;
 
-	record_sec: number;
-	swim_sec: number;
-	bike_sec: number;
-	run_sec: number;
+	stats: Object.<string, {time: number}>;
 }
+
+interface LapInfo {
+	name: string,
+	range: any,
+	units: string,
+};
 
 interface Course {
 	name: string;
 	short_name: string;
 	starttime: number;
 	weather: string;
-	distance: {
+	distance?: {
 		swim: number;
 		bike: number;
 		run: number;
 	};
 	locale: string;
-	category: 'standard' | 'super_sprint' | 'sprint' | 'middle' | 'long' | 'other';
+	category: string;
 	url: string?;
+	laps?: {
+		keys: Array<LapInfo>;
+		main: string;
+	};
 }
 
 interface Race {

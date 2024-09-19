@@ -22,11 +22,10 @@ const query_manager = new QueryManager(window);
  * @property {HTMLCanvasElement} canvas
  */
 
-
 /**
  * @typedef GlobalVars
  * @property {string} race レースID, fuji2024など
- * @property {{all: Array<Lap>, sub: Array<Lap>, main: Lap}} laps
+ * @property {{main: Lap, all: Array<LapInfo>, sub: Array<LapInfo>}} laps
  * @property {Object.<Lap, LapResultContext>} context
  * @property {Course} course
  * @property {DataManagerTri} result
@@ -65,11 +64,11 @@ const initializer = (async () => {
 	return import(`/assets/result/${g.race ?? 'sample'}.json`, { with: { type: 'json' } })
 		.then(({ default: { course, result } }) => {
 			g.course = course;
-			g.laps.all = g.course.laps?.keys?.map(x => x.name) ?? default_laps;
 			g.laps.main = g.course.laps?.main ?? default_main_lap;
-			g.laps.sub = g.laps.all.filter(x => x !== g.laps.main);
+			g.laps.all = g.course.laps?.keys;
+			g.laps.sub = g.laps.all.filter(x => x.name !== g.laps.main);
 
-			g.context = Object.fromEntries(g.laps.all.map(lap => [lap, {}]));
+			g.context = Object.fromEntries(g.laps.all.map(({ name: lap }) => [lap, {}]));
 
 			g.result = new DataManagerTri(g.laps.all);
 			g.result.setData(result);
@@ -110,9 +109,9 @@ const draw_summaries = () => {
  */
 const draw_all = () => {
 	g.laps.all
-		.forEach(x => {
-			draw_chart(x);
-			draw_member_ranking(x);
+		.forEach(({ name: lap }) => {
+			draw_chart(lap);
+			draw_member_ranking(lap);
 		});
 
 	draw_summaries();
@@ -122,7 +121,7 @@ const draw_all = () => {
  * ランキング要素を描画する
  * @param {Lap} lap 
  */
-const draw_member_ranking = (lap) => {
+const draw_member_ranking = lap => {
 	// 一度、内容を全て消去する
 	g.context[lap].panel.querySelector('ul.ranking').textContent = '';
 
@@ -152,7 +151,7 @@ const draw_member_ranking = (lap) => {
  * チャートを描画する
  * @param {Lap} lap 
  */
-const draw_chart = (lap) => {
+const draw_chart = lap => {
 	// 既に描画されている場合は消去する
 	g.context[lap].chart?.destroy();
 	g.context[lap].chart = null;
@@ -330,7 +329,7 @@ window.addEventListener('load', () => {
 			update_search_string();
 
 			// 関係する要素の再描画処理
-			g.laps.all.forEach(lap => {
+			g.laps.all.forEach(({ name: lap }) => {
 				g.context[lap]?.chart?.update();
 				draw_member_ranking(lap);
 			});
@@ -340,6 +339,12 @@ window.addEventListener('load', () => {
 		return elem;
 	};
 
+	const lap_names = {
+		record: '総合',
+		swim: 'スイム',
+		bike: 'バイク',
+		run: 'ラン',
+	};
 
 	initializer
 		.then(() => {
@@ -347,15 +352,12 @@ window.addEventListener('load', () => {
 			const parent = document.querySelector('#view');
 			const position = document.querySelector('#panel_positioner');
 
-			const lap_names = {
-				record: '総合',
-				swim: 'スイム',
-				bike: 'バイク',
-				run: 'ラン',
-			};
-			g.laps.all.forEach(lap => {
-				const panel = templater.generate('lap_panel', { '.lap_name': lap_names[lap] });
+
+			g.laps.all.forEach(({ name: lap }) => {
+				const kind = lap.split('-')[0];
+				const panel = templater.generate('lap_panel', { '.lap_name': lap_names[kind] });
 				panel.classList.add(lap);
+				panel.classList.add(kind);
 
 				g.context[lap].panel = panel;
 				g.context[lap].canvas = panel.querySelector(`canvas`);
@@ -367,11 +369,15 @@ window.addEventListener('load', () => {
 			document.querySelector('title').textContent = `${g.course.name} :: Trist`;
 
 			const course_summary = document.querySelector('#course_summary');
+
+			const course_distance =
+				g.laps.sub.map(({ name, range, units }) => `${name.split('-')[0]} ${range}${units}`).join(', ');
+
 			[
 				`${new Date(g.course.starttime).toLocaleString('ja-JP')} スタート`,
 				`場所：${g.course.locale} ${g.course.weather}`,
-				`${g.course.category} distance`,
-				g.laps.sub.map(lap => `${lap} ${g.course.distance[lap]}km`).join(', '),
+				`${g.course.category}`,
+				course_distance,
 			].forEach(text => {
 				const p = document.createElement('p');
 				p.textContent = text;
@@ -382,11 +388,9 @@ window.addEventListener('load', () => {
 			// 各Panelにレース名をいれる（薄字のやつ）
 			Array.from(document.querySelectorAll('.course_name')).forEach(elem => elem.textContent = g.course.name);
 
-			// 種目別ビューの距離をいれる
-			g.laps.sub.forEach(lap => g.context[lap].panel.querySelector(`.distance`).textContent = g.course.distance[lap] + ' km');
-
-			// 総合は距離の代わりに、ディタンスカテゴリ
-			g.context[g.laps.main].panel.querySelector('.distance').textContent = g.course.category;
+			g.laps.all.forEach(({ name, range, units }) => {
+				g.context[name].panel.querySelector('.range').textContent = range + ' ' + units;
+			})
 
 
 			document.querySelector('#share-x-link')
