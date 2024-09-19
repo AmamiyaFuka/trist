@@ -73,8 +73,16 @@ const initializer = (async () => {
 			g.result = new DataManagerTri(g.laps.all);
 			g.result.setData(result);
 
-			const initial_member_ids = [q.members].flat();
-			g.result.setMembers(result.filter(x => initial_member_ids.includes(x.number)));
+			if (g.race) {
+				const initial_member_ids = [q.members].flat();
+				g.result.setMembers(result.filter(x => initial_member_ids.includes(x.number)));
+			} else {
+				// サンプルモードの時は、ランダムに4名表示する
+				for (let i = 0; i < 4; i++) {
+					const k = Math.floor(Math.random() * result.length);
+					g.result.addMember(result[k]);
+				}
+			}
 		});
 })();
 
