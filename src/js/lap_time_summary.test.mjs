@@ -19,7 +19,11 @@ window.addEventListener('load', () => {
 		// 一つ目、オーソドックスなもの。見本と同じデータ
 		const x = test_views[test_view_index++];
 
-		const laps = ['swim', 'bike-3', 'run-2'];
+		const laps = [
+			{ name: 'swim', range: 1.5, units: 'km' },
+			{ name: 'bike-3', range: 72, units: 'km' },
+			{ name: 'run-2', range: 5.0, units: 'km' },
+		];
 		const test_data = [];
 
 		const lap_score_summary = new LapTimeSummary(laps, test_data, x);
@@ -54,7 +58,10 @@ window.addEventListener('load', () => {
 		// ラップが2つしかない、ラップの順番がいつもと違う
 		const x = test_views[test_view_index++];
 
-		const laps = ['bike-3', 'swim'];
+		const laps = [
+			{ name: 'bike-3', range: 72, units: 'km' },
+			{ name: 'swim', range: 1.5, units: 'km' },
+		];
 		const test_data = [];
 
 		const lap_score_summary = new LapTimeSummary(laps, test_data, x);
@@ -81,7 +88,12 @@ window.addEventListener('load', () => {
 		// ラップが4つある、種目が同じ
 		const x = test_views[test_view_index++];
 
-		const laps = ['swim', 'bike-3', 'run-2', 'bike-1'];
+		const laps = [
+			{ name: 'swim', range: 1.5, units: 'km' },
+			{ name: 'bike-3', range: 72, units: 'km' },
+			{ name: 'run-2', range: 5.0, units: 'km' },
+			{ name: 'bike-1', range: 272, units: 'km' },
+		];
 		const test_data = [];
 
 		const lap_score_summary = new LapTimeSummary(laps, test_data, x);
@@ -110,7 +122,12 @@ window.addEventListener('load', () => {
 		// 常に一部のデータが抜けている
 		const x = test_views[test_view_index++];
 
-		const laps = ['swim', 'bike-3', 'run-2', 'bike-1'];
+		const laps = [
+			{ name: 'swim', range: 1.5, units: 'km' },
+			{ name: 'bike-3', range: 72, units: 'km' },
+			{ name: 'run-2', range: 5.0, units: 'km' },
+			{ name: 'bike-1', range: 272, units: 'km' },
+		];
 		const test_data = [];
 
 		const lap_score_summary = new LapTimeSummary(laps, test_data, x);
@@ -158,13 +175,18 @@ window.addEventListener('load', () => {
 		});
 		lap_score_summary.update();
 	}
-	
+
 
 	{
 		// さらに全てのラップのデータが抜けている
 		const x = test_views[test_view_index++];
 
-		const laps = ['swim', 'bike-3', 'run-2', 'bike-1'];
+		const laps = [
+			{ name: 'swim', range: 1.5, units: 'km' },
+			{ name: 'bike-3', range: 72, units: 'km' },
+			{ name: 'run-2', range: 5.0, units: 'km' },
+			{ name: 'bike-1', range: 272, units: 'km' },
+		];
 		const test_data = [];
 
 		const lap_score_summary = new LapTimeSummary(laps, test_data, x);
@@ -208,13 +230,18 @@ window.addEventListener('load', () => {
 		});
 		lap_score_summary.update();
 	}
-	
+
 
 	{
 		// ボタンを押すと数値が変わる
 		const x = test_views[test_view_index++];
 
-		const laps = ['swim', 'bike-3', 'run-2', 'bike-1'];
+		const laps = [
+			{ name: 'swim', range: 1.5, units: 'km' },
+			{ name: 'bike-3', range: 72, units: 'km' },
+			{ name: 'run-2', range: 5.0, units: 'km' },
+			{ name: 'bike-1', range: 272, units: 'km' },
+		];
 		const test_data = [];
 
 		const lap_score_summary = new LapTimeSummary(laps, test_data, x);
@@ -227,7 +254,7 @@ window.addEventListener('load', () => {
 			for (let i = 0; i < data_count; i++) {
 				test_data.push({
 					display_name: `サンプル${i}`,
-					stats: Object.fromEntries(laps.map(lap => [lap, { time: Math.floor(Math.random() * 40 + 30) }])),
+					stats: Object.fromEntries(laps.map(({ name: lap }) => [lap, { time: Math.floor(Math.random() * 40 + 30) }])),
 				});
 			}
 

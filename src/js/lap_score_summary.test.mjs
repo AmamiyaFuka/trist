@@ -19,7 +19,11 @@ window.addEventListener('load', () => {
 		// 一つ目、オーソドックスなもの。見本と同じデータ
 		const x = test_views[test_view_index++];
 
-		const laps = ['swim', 'bike-3', 'run-2'];
+		const laps = [
+			{ name: 'swim', range: 1.5, units: 'km' },
+			{ name: 'bike-3', range: 72, units: 'km' },
+			{ name: 'run-2', range: 5.0, units: 'km' }
+		];
 		const test_data = [];
 
 		const lap_score_summary = new LapScoreSummary(laps, test_data, x);
@@ -47,7 +51,10 @@ window.addEventListener('load', () => {
 		// ラップが2つしかない
 		const x = test_views[test_view_index++];
 
-		const laps = ['swim', 'bike-3'];
+		const laps = [
+			{ name: 'swim', range: 1.5, units: 'km' },
+			{ name: 'bike-3', range: 72, units: 'km' },
+		];
 		const test_data = [];
 
 		const lap_score_summary = new LapScoreSummary(laps, test_data, x);
@@ -75,7 +82,12 @@ window.addEventListener('load', () => {
 		// ラップが4つある、種目が同じ
 		const x = test_views[test_view_index++];
 
-		const laps = ['swim', 'bike-3', 'run-2', 'bike-1'];
+		const laps = [
+			{ name: 'swim', range: 1.5, units: 'km' },
+			{ name: 'bike-3', range: 72, units: 'km' },
+			{ name: 'run-2', range: 5.0, units: 'km' },
+			{ name: 'bike-1', range: 172, units: 'km' },
+		];
 		const test_data = [];
 
 		const lap_score_summary = new LapScoreSummary(laps, test_data, x);
@@ -104,7 +116,12 @@ window.addEventListener('load', () => {
 		// ボタンを押すと数値が変わる
 		const x = test_views[test_view_index++];
 
-		const laps = ['swim', 'bike-3', 'run-2', 'bike-1'];
+		const laps = [
+			{ name: 'swim', range: 1.5, units: 'km' },
+			{ name: 'bike-3', range: 72, units: 'km' },
+			{ name: 'run-2', range: 5.0, units: 'km' },
+			{ name: 'bike-1', range: 172, units: 'km' },
+		];
 		const test_data = [];
 
 		const lap_score_summary = new LapScoreSummary(laps, test_data, x);
@@ -117,7 +134,7 @@ window.addEventListener('load', () => {
 			for (let i = 0; i < data_count; i++) {
 				test_data.push({
 					display_name: `サンプル${i}`,
-					stats: Object.fromEntries(laps.map(lap => [lap, { score: Math.floor(Math.random() * 40 + 30) }])),
+					stats: Object.fromEntries(laps.map(({ name: lap }) => [lap, { score: Math.floor(Math.random() * 40 + 30) }])),
 				});
 			}
 
