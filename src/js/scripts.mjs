@@ -132,7 +132,7 @@ const draw_summaries = () => {
 const draw_all = () => {
 	// 描画前にメインタイムでソートする
 	g.result.member_data.sort((a, b) => a.stats[g.laps.main].time - b.stats[g.laps.main].time);
-	
+
 	g.laps.all
 		.forEach(({ name: lap }) => {
 			draw_chart(lap);
@@ -590,3 +590,19 @@ window.addEventListener('load', () => {
 	Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
 		.forEach(elem => new bootstrap.Tooltip(elem));
 }, { once: true });
+
+// PWAインストールプロンプトを、ユーザー操作のタイミングで出す
+window.addEventListener('beforeinstallprompt', event => {
+	event.preventDefault();
+
+	document.querySelector('#install_app_button')
+		.addEventListener('click', () => {
+			if (event) {
+				console.log('start install app');
+				event.prompt();
+				event.userChoice.then(choise => console.log(`User ${choise} the prompt`));
+			} else {
+				console.log('before install prompt event is null');
+			}
+		});
+});
