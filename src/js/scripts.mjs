@@ -58,7 +58,10 @@ const initializer = (async () => {
 	const default_main_lap = 'record';
 
 	const q = query_manager.getQueryParameter();
-	if ('launch' in q && q.launch?.startsWith('?')) window.location.href = window.localStorage.getItem('last');
+	if ('launch' in q) {
+		const p = window.localStorage.getItem('last');
+		if (p?.startsWith('?')) window.location.href = p;
+	}
 
 	g.race = q.race;
 
