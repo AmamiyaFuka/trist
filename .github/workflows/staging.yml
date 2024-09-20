@@ -1,4 +1,4 @@
-name: Deploy static content to Pages using Bootstrap
+name: Deploy staging to GitHub Pages
 
 on:
   # Allows you to run this workflow manually from the Actions tab
