@@ -120,8 +120,6 @@ const update_search_string = () => {
  * サマリーパネルを再描画する
  */
 const draw_summaries = () => {
-	// サマリー前にメインタイムでソートする
-	g.result.member_data.sort((a, b) => a.stats[g.laps.main].time - b.stats[g.laps.main].time);
 	g.summaries.forEach(s => s.container.classList[s.update() ? 'remove' : 'add']('d-none'));
 };
 
@@ -129,6 +127,9 @@ const draw_summaries = () => {
  * すべてのラップパネルのチャート、ランキングと、サマリーパネルを描画する
  */
 const draw_all = () => {
+	// 描画前にメインタイムでソートする
+	g.result.member_data.sort((a, b) => a.stats[g.laps.main].time - b.stats[g.laps.main].time);
+	
 	g.laps.all
 		.forEach(({ name: lap }) => {
 			draw_chart(lap);
@@ -151,7 +152,7 @@ const draw_member_ranking = lap => {
 
 	g.result.member_data
 		.map((member, i) => ({ color: color_pallets.indexOf(i), display: member.display_name, time: member.stats[lap].time }))
-		.sort((a, b) => a.time - b.time)
+		.sort((a, b) => !a.time ? 1 : !b.time ? -1 : a.time - b.time) // No dataは最後にする
 		.map(x => {
 			const d = x.time - front;
 			const delta = (front && !isNaN(d)) ? Utils.sec_to_mss_with_sign(x.time - front, true) : '';
