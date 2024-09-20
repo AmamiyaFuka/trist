@@ -58,6 +58,7 @@ const initializer = (async () => {
 	const default_main_lap = 'record';
 
 	const q = query_manager.getQueryParameter();
+	if ('launch' in q) window.location.href = window.localStorage.getItem('last');
 
 	g.race = q.race;
 
@@ -90,16 +91,28 @@ const initializer = (async () => {
  * 現在の表示状態をsearch文字列に反映させる
  */
 const update_search_string = () => {
-	const query = query_manager.setQueryParameter(g.race ? {
-		race: g.race,
-		members: g.result.member_data.map(x => x.number),
-	} : {});
+	if (g.race) {
+		const query = query_manager.setQueryParameter({
+			race: g.race,
+			members: g.result.member_data.map(x => x.number),
+		});
+		// 起動時 (?launch アクセス時)に最後の閲覧ポイントに飛ぶ
+		window.localStorage.setItem('last', query);
 
-	// Xシェアリンクを更新
-	const text = g.race ? encodeURIComponent(g.course.name + 'のリザルト') : 'Trist';
-	const url = 'https://trist.amamiya-studio.com/' + query;
-	document.querySelector('#share-x-link')
-		.setAttribute('href', `https://x.com/intent/tweet?text=${text}&url=${url}`);
+		// Xシェアリンクを更新
+		const text = encodeURIComponent(g.course.name + 'のリザルト');
+		const url = 'https://trist.amamiya-studio.com/' + query;
+		document.querySelector('#share-x-link')
+			.setAttribute('href', `https://x.com/intent/tweet?text=${text}&url=${url}`);
+	} else {
+		// サンプル表示時
+
+		// Xシェアリンクはルートページへ
+		const text = 'Trist';
+		const url = 'https://trist.amamiya-studio.com/';
+		document.querySelector('#share-x-link')
+			.setAttribute('href', `https://x.com/intent/tweet?text=${text}&url=${url}`);
+	}
 };
 
 
