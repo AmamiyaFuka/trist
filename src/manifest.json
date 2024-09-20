@@ -1,0 +1,20 @@
+{
+	"name": "Trist",
+	"icons": [
+		{
+			"src": "/assets/icon/trist-512.png",
+			"type": "image/png",
+			"sizes": "512x512"
+		},
+		{
+			"src": "/assets/icon/trist-192.png",
+			"type": "image/png",
+			"sizes": "192x192"
+		}
+	],
+	"description": "Visualizer for triathlon race",
+	"display": "standalone",
+	"id": "?pwa=true",
+	"scope": "https://trist.amamiya-studio.com/",
+	"start_url": "https://trist.amamiya-studio.com/?launch"
+}

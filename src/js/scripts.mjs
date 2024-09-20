@@ -58,6 +58,10 @@ const initializer = (async () => {
 	const default_main_lap = 'record';
 
 	const q = query_manager.getQueryParameter();
+	if ('launch' in q) {
+		const p = window.localStorage.getItem('last');
+		if (p?.startsWith('?')) window.location.href = p;
+	}
 
 	g.race = q.race;
 
@@ -90,16 +94,28 @@ const initializer = (async () => {
  * 現在の表示状態をsearch文字列に反映させる
  */
 const update_search_string = () => {
-	const query = query_manager.setQueryParameter(g.race ? {
-		race: g.race,
-		members: g.result.member_data.map(x => x.number),
-	} : {});
+	if (g.race) {
+		const query = query_manager.setQueryParameter({
+			race: g.race,
+			members: g.result.member_data.map(x => x.number),
+		});
+		// 起動時 (?launch アクセス時)に最後の閲覧ポイントに飛ぶ
+		window.localStorage.setItem('last', query);
 
-	// Xシェアリンクを更新
-	const text = g.race ? encodeURIComponent(g.course.name + 'のリザルト') : 'Trist';
-	const url = 'https://trist.amamiya-studio.com/' + query;
-	document.querySelector('#share-x-link')
-		.setAttribute('href', `https://x.com/intent/tweet?text=${text}&url=${url}`);
+		// Xシェアリンクを更新
+		const text = encodeURIComponent(g.course.name + 'のリザルト');
+		const url = 'https://trist.amamiya-studio.com/' + query;
+		document.querySelector('#share-x-link')
+			.setAttribute('href', `https://x.com/intent/tweet?text=${text}&url=${url}`);
+	} else {
+		// サンプル表示時
+
+		// Xシェアリンクはルートページへ
+		const text = 'Trist';
+		const url = 'https://trist.amamiya-studio.com/';
+		document.querySelector('#share-x-link')
+			.setAttribute('href', `https://x.com/intent/tweet?text=${text}&url=${url}`);
+	}
 };
 
 
@@ -107,8 +123,6 @@ const update_search_string = () => {
  * サマリーパネルを再描画する
  */
 const draw_summaries = () => {
-	// サマリー前にメインタイムでソートする
-	g.result.member_data.sort((a, b) => a.stats[g.laps.main].time - b.stats[g.laps.main].time);
 	g.summaries.forEach(s => s.container.classList[s.update() ? 'remove' : 'add']('d-none'));
 };
 
@@ -116,6 +130,9 @@ const draw_summaries = () => {
  * すべてのラップパネルのチャート、ランキングと、サマリーパネルを描画する
  */
 const draw_all = () => {
+	// 描画前にメインタイムでソートする
+	g.result.member_data.sort((a, b) => a.stats[g.laps.main].time - b.stats[g.laps.main].time);
+
 	g.laps.all
 		.forEach(({ name: lap }) => {
 			draw_chart(lap);
@@ -138,7 +155,7 @@ const draw_member_ranking = lap => {
 
 	g.result.member_data
 		.map((member, i) => ({ color: color_pallets.indexOf(i), display: member.display_name, time: member.stats[lap].time }))
-		.sort((a, b) => a.time - b.time)
+		.sort((a, b) => !a.time ? 1 : !b.time ? -1 : a.time - b.time) // No dataは最後にする
 		.map(x => {
 			const d = x.time - front;
 			const delta = (front && !isNaN(d)) ? Utils.sec_to_mss_with_sign(x.time - front, true) : '';
@@ -161,8 +178,10 @@ const draw_member_ranking = lap => {
  */
 const draw_chart = lap => {
 	// 既に描画されている場合は消去する
-	g.context[lap].chart?.destroy();
-	g.context[lap].chart = null;
+	if (g.context[lap].chart) {
+		g.context[lap].chart.update();
+		return;
+	}
 
 	const time_step_sec = 600;
 
@@ -571,3 +590,19 @@ window.addEventListener('load', () => {
 	Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
 		.forEach(elem => new bootstrap.Tooltip(elem));
 }, { once: true });
+
+// PWAインストールプロンプトを、ユーザー操作のタイミングで出す
+window.addEventListener('beforeinstallprompt', event => {
+	event.preventDefault();
+
+	document.querySelector('#install_app_button')
+		.addEventListener('click', () => {
+			if (event) {
+				console.log('start install app');
+				event.prompt();
+				event.userChoice.then(choise => console.log(`User ${choise} the prompt`));
+			} else {
+				console.log('before install prompt event is null');
+			}
+		});
+});
