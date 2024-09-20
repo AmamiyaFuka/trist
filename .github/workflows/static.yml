@@ -33,6 +33,7 @@ jobs:
       # testファイルは公開しない
       - run: rm ./dist/*.test.*
       - run: rm -r ./dist/**/*.test.*
+      # ToDo: ステージング用のスクリプトを挿入する
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
