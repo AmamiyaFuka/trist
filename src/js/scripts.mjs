@@ -175,8 +175,10 @@ const draw_member_ranking = lap => {
  */
 const draw_chart = lap => {
 	// 既に描画されている場合は消去する
-	g.context[lap].chart?.destroy();
-	g.context[lap].chart = null;
+	if (g.context[lap].chart) {
+		g.context[lap].chart.update();
+		return;
+	}
 
 	const time_step_sec = 600;
 
