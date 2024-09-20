@@ -2,12 +2,7 @@
 	"name": "Trist",
 	"icons": [
 		{
-			"src": "/assets/icon/trist-512.png",
-			"type": "image/png",
-			"sizes": "512x512"
-		},
-		{
-			"src": "/assets/icon/trist-192.png",
+			"src": "/assets/icon/trist-192-home.png",
 			"type": "image/png",
 			"sizes": "192x192"
 		}
