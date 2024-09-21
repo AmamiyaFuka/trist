@@ -1,0 +1,21 @@
+name: Delete cache on cloudfront
+
+on:
+  workflow_dispatch:
+
+env:
+  AWS_REGION: "us-east-1"
+
+jobs: 
+  # Build job
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.IAM_ROLE_NAME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Delete cache on cloudfront
+        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
