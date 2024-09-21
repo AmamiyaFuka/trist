@@ -18,15 +18,15 @@ export default class LapTimeSummary {
 	#laps;
 
 	/** @type {Array<PersonResult>} */
-	#member_data;
+	#athlete_data;
 
 	/**
 	 * 
 	 * @param {Array<LapInfo>} laps 
-	 * @param {Array<PersonResult>} member_data 
+	 * @param {Array<PersonResult>} athlete_data 
 	 * @param {Element} container 
 	 */
-	constructor(laps, member_data, container) {
+	constructor(laps, athlete_data, container) {
 		const row_class_name = 'template-lap_time_row';
 
 
@@ -64,7 +64,7 @@ export default class LapTimeSummary {
 
 		this.container = container;
 		this.#laps = laps;
-		this.#member_data = member_data;
+		this.#athlete_data = athlete_data;
 		this.#row_templater = new BootstrapTemplate();
 		this.#row_templater.init(container, row_class_name);
 	}
@@ -74,7 +74,7 @@ export default class LapTimeSummary {
 	}
 
 	update() {
-		if (this.#member_data.length < 1) return false;
+		if (this.#athlete_data.length < 1) return false;
 
 		this.clear();
 
@@ -87,14 +87,14 @@ export default class LapTimeSummary {
 		// 比較値
 		const current_time = {};
 
-		this.#member_data
-			.forEach((member, i) => {
+		this.#athlete_data
+			.forEach((athlete, i) => {
 				const row = this.#row_templater.generate('lap_time_row', {
-					'.name': member.display_name,
+					'.name': athlete.display_name,
 				});
 
 				this.#laps.forEach(({ name: lap }) => {
-					const v = member.stats?.[lap]?.time;
+					const v = athlete.stats?.[lap]?.time;
 
 					if (v) {
 						// 比較値が含まれている場合は、差分表示。いない場合は絶対値表示
@@ -117,11 +117,11 @@ export default class LapTimeSummary {
 		const base_time = ((() => {
 			let sum = 0;
 			let count = 0;
-			this.#member_data.forEach(member => {
+			this.#athlete_data.forEach(athlete => {
 				this.#laps
-					.filter(lap => member.stats[lap]?.time)
+					.filter(lap => athlete.stats[lap]?.time)
 					.forEach(lap => {
-						sum += member.stats[lap].time;
+						sum += athlete.stats[lap].time;
 						count++;
 					});
 			})

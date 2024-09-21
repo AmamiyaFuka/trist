@@ -47,7 +47,7 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
             .d-grid.ms-auto.gap-3(style='grid-auto-flow: column; grid-template-columns: 1fr 1fr 1fr;' data-bs-theme='dark')
                 .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#race-tab"]') Race 
                     span.bi-grid-fill
-                .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#member-tab"]') Member
+                .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#athlete-tab"]') Athlete
                     span.bi-person-plus-fill
                 .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#group-tab"]') Group 
                     span.bi-filter
@@ -60,7 +60,7 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
                     .modal-header 
                         .nav.nav-pills.nav-justified
                             a.nav-link.active(data-bs-toggle='tab' data-bs-target='#race-tab') Race
-                            a.nav-link(data-bs-toggle='tab' data-bs-target='#member-tab') Member
+                            a.nav-link(data-bs-toggle='tab' data-bs-target='#athlete-tab') Athlete
                             a.nav-link(data-bs-toggle='tab' data-bs-target='#group-tab') Group
                         button.btn-close(type='button' aria-label='Close' data-bs-dismiss='modal')
                     .modal-body.tab-content.p-0.m-3 
@@ -72,20 +72,20 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
                             a.template#race_list_item_template.btn.btn-outline-dark.rounded-pill.mx-1.my-2.px-2.py-1
                                 span
 
-                        .tab-pane.fade#member-tab
+                        .tab-pane.fade#athlete-tab
                             .d-flex
                                 h5.align-self-center.me-3.mt-auto.mb-auto Add
                                 label.align-self-center.flex-grow-1
-                                    input#new_member_input.w-100(type='search' placeholder='名前, ゼッケン番号') 
-                            ul#new_member_list.list-group.mt-2
-                                li.template#member_list_template.member-list-item.list-group-item.d-flex 
+                                    input#new_athlete_input.w-100(type='search' placeholder='名前, ゼッケン番号') 
+                            ul#new_athlete_list.list-group.mt-2
+                                li.template#athlete_list_template.athlete-list-item.list-group-item.d-flex 
                                     span.display_name.align-self-center 
                                     span.number.align-self-center 
                                     button.btn.ms-auto.px-3.py-1.fs-3
                                         span.user-plus.bi-person-plus
                                         span.user-minus.bi-person-dash-fill
-                            h5 Members
-                            ul#member_list.list-group
+                            h5 Athletes
+                            ul#athlete_list.list-group
 
                         .tab-pane.fade#group-tab
                             p お試し
