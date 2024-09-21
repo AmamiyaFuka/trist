@@ -43,12 +43,12 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
         header.d-flex.flex-row-reverse.flex-wrap.justify-content-between(style='background-image: url("assets/trist_logo.png"); \
             background-size: auto 2rem;')
             h1.d-none Trist
-            button.btn.btn-light.bi-gear-fill.px-1.py-0.mx-3.my-1(data-bs-toggle='offcanvas' data-bs-target='#configure')
+            button.btn.btn-light.bi-question-lg.px-1.py-0.mx-3.my-1(data-bs-toggle='offcanvas' data-bs-target='#configure')
             .d-grid.ms-auto.gap-3(style='grid-auto-flow: column; grid-template-columns: 1fr 1fr 1fr;' data-bs-theme='dark')
                 .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#race-tab"]') Race 
                     span.bi-grid-fill
                 .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#athlete-tab"]') Athlete
-                    span.bi-person-plus-fill
+                    span.bi-person-circle
                 .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#group-tab"]') Group 
                     span.bi-filter
 
@@ -90,17 +90,42 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
                         .tab-pane.fade#group-tab
                             p お試し
                                 select#group.form-select(multiple=true)
-        
-        #configure.offcanvas.offcanvas-end(style='width: 15rem')
+
+        #configure.offcanvas.offcanvas-end
             .offcanvas-header.bg-dark.text-light 
-                .offcanvas-title 設定
+                .offcanvas-title ヘルプ
                 button.btn.btn-close.bg-light(data-bs-dismiss='offcanvas')
             .offcanvas-body 
-                .container.d-grid(style='grid-template-columns: 3fr 1fr; align-items: center;')
-                    h4(style='grid-column: span 2;') ベータ機能
-                    span ホームに追加
-                    button.btn.btn-secondary.bi-box-arrow-in-down#install_app_button
+                .container
+                    h4(style='grid-column: span 2;') 使い方
+                    .d-grid(style='grid-template-columns: 7em auto; gap 1rem 0.3rem; align-items: center; justify-items: center;')
+                        .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#race-tab"]') Race 
+                            span.bi-grid-fill
+                        div リザルトを見たいレースが選べます
+                        .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#athlete-tab"]') Athlete
+                            span.bi-person-circle
+                        div 出走アスリートの結果詳細をプロットします
+                        .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#group-tab"]') Group 
+                            span.bi-filter
+                        div 全体リザルトを区分でフィルタします
                     
+                    hr
+                    h4 パネルの見方
+                    .container.p-0.d-grid(style='justify-items: center;')
+                        div メインのパネルは縦軸が順位、横軸がフィニッシュタイムです
+                        img(src='/assets/thumbnail/panel_main.png')
+                        div.mt-3 アスリートを一人以上選ぶと、追加のパネルが表示されます
+                        div.mt-2 タイムパネルでは、アスリート間で競技別のフィニッシュタイムの違いが見れます
+                        img(src='/assets/thumbnail/panel_time.png')
+                        div.mt-2 スコアパネルでは、各アスリートのフィニッシュタイムを全体に対しての偏差値で見れます
+                        img(src='/assets/thumbnail/panel_score.png')
+
+                    hr
+                    h4(style='grid-column: span 2;') ベータ機能
+                    .d-grid(style='grid-template-columns: 3fr 3em; align-items: center;')
+                        span ホームに追加 (Android)
+                        button.btn.btn-secondary.bi-box-arrow-in-down#install_app_button
+
                     .mt-4 v#{now}
 
         // Content section
