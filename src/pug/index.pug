@@ -1,4 +1,5 @@
-- var now = Date.now();
+- const now = Date.now();
+- const ver = (new Date() - 1710000000000).toString().slice(0, -6).replace(/([0-9]+)([0-9]{2})([0-9]{2})/, '$1.$2.$3')
 
 doctype html
 html(lang='ja' prefix="og: https://ogp.me/ns#")
@@ -95,36 +96,37 @@ html(lang='ja' prefix="og: https://ogp.me/ns#")
                 button.btn.btn-close.bg-light(data-bs-dismiss='offcanvas')
             .offcanvas-body 
                 .container
-                    h4(style='grid-column: span 2;') 使い方
+                    h4 使い方
                     .d-grid(style='grid-template-columns: 7em auto; gap 1rem 0.3rem; align-items: center; justify-items: center;')
                         .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#race-tab"]') Race 
                             span.bi-grid-fill
-                        div リザルトを見たいレースが選べます
+                        div リザルトを見たい#[strong レース]が選べます
                         .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#athlete-tab"]') Athlete
                             span.bi-person-circle
-                        div 出走アスリートの結果詳細をプロットします
+                        div 出走#[strong アスリート]の結果詳細をプロットします
                         .btn.btn-dark.btn-menu(data-bs-toggle='modal' data-bs-target='#navi' data-tab='#navi a[data-bs-target="#group-tab"]') Group 
                             span.bi-filter
                         div 全体リザルトを区分でフィルタします
                     
                     hr
-                    h4 パネルの見方
+                    h4 #[strong パネル]の見方
                     .container.p-0.d-grid(style='justify-items: center;')
                         div メインのパネルは縦軸が順位、横軸がフィニッシュタイムです
                         img(src='/assets/thumbnail/panel_main.png')
-                        div.mt-3 アスリートを一人以上選ぶと、追加のパネルが表示されます
-                        div.mt-2 タイムパネルでは、アスリート間で競技別のフィニッシュタイムの違いが見れます
+                        div.mt-3 #[strong アスリート]を#[strong 一人以上]選ぶと、追加のパネルが表示されます
+                        div.mt-2 #[strong タイムパネル]では、アスリート間で競技別のフィニッシュタイムの違いが見れます
                         img(src='/assets/thumbnail/panel_time.png')
-                        div.mt-2 スコアパネルでは、各アスリートのフィニッシュタイムを全体に対しての偏差値で見れます
+                        div.mt-2 #[strong スコアパネル]では、各アスリートのフィニッシュタイムを全体に対しての偏差値で見れます
                         img(src='/assets/thumbnail/panel_score.png')
 
                     hr
-                    h4(style='grid-column: span 2;') ベータ機能
+                    h4 ベータ機能
                     .d-grid(style='grid-template-columns: 3fr 3em; align-items: center;')
-                        span ホームに追加 (Android)
+                        div ホームに追加 (Android)
                         button.btn.btn-secondary.bi-box-arrow-in-down#install_app_button
+                        div(style='grid-column: span 2;') 通常のアプリのように使えます
 
-                    .mt-4 v#{now}
+                    .mt-4 Ver #{ver}
 
         // Content section
         section#course
