@@ -42,7 +42,7 @@ export default class DataManagerTri {
 	#data = [];
 
 	/** @type {Array<PersonData>} */
-	member_data = [];
+	athlete_data = [];
 
 	/** @type {Object.<string, ChartDataItem>} */
 	time_ranking_data = {};
@@ -162,40 +162,40 @@ export default class DataManagerTri {
 			}
 		});
 
-		this.member_data.forEach(d => this.#calculateMemberStats(d));
+		this.athlete_data.forEach(d => this.#calculateAthleteStats(d));
 		return this;
 	}
 
 	/**
 	 * メンバーをセットします
-	 * @param {Array<PersonData>} members 
+	 * @param {Array<PersonData>} athletes 
 	 * @returns {DataManagerTri}
 	 */
-	setMembers(members) {
-		members.forEach(d => this.#calculateMemberStats(d));
-		this.member_data.splice(0, Infinity, ...members);
+	setAthletes(athletes) {
+		athletes.forEach(d => this.#calculateAthleteStats(d));
+		this.athlete_data.splice(0, Infinity, ...athletes);
 		return this;
 	}
 
 	/**
 	 * メンバーを追加します
 	 * updateを呼ばなくても、statsが更新されます
-	 * @param {PersonData} member
+	 * @param {PersonData} athlete
 	 * @returns {DataManagerTri}
 	 */
-	addMember(member) {
-		this.member_data.push(this.#calculateMemberStats(member));
+	addAthlete(athlete) {
+		this.athlete_data.push(this.#calculateAthleteStats(athlete));
 		return this;
 	}
 
 	/**
 	 * メンバーを除去します	 * 
-	 * @param {PersonData} member
+	 * @param {PersonData} athlete
 	 * @returns {DataManagerTri}
 	 */
-	removeMember(member) {
-		const i = this.member_data.findIndex(d => d == member);
-		this.member_data.splice(i, 1);
+	removeAthlete(athlete) {
+		const i = this.athlete_data.findIndex(d => d == athlete);
+		this.athlete_data.splice(i, 1);
 		return this;
 	}
 
@@ -208,27 +208,27 @@ export default class DataManagerTri {
 
 	/**
 	 * メンバーの stats を計算します
-	 * @param {PersonData} member 
+	 * @param {PersonData} athlete 
 	 * @returns {PersonData}
 	 */
-	#calculateMemberStats(member) {
+	#calculateAthleteStats(athlete) {
 		this.#laps.forEach(({name: lap}) => {
 			// ループの外で十分なはずなのに、ここにいれないとlint errorになる。きもちわるい
-			if (!(member.stats)) member.stats = {};
+			if (!(athlete.stats)) athlete.stats = {};
 
 			const { data, stats } = this.time_ranking_data[lap];
 
-			const member_lap_time = member?.stats?.[lap]?.time;
-			const ranking = data.findIndex(({ time }) => time >= member_lap_time) + 1;
+			const athlete_lap_time = athlete?.stats?.[lap]?.time;
+			const ranking = data.findIndex(({ time }) => time >= athlete_lap_time) + 1;
 			const percentile = ranking / stats.count;
-			const score = (stats.average - member_lap_time) / stats.stdev * 10 + 50;
+			const score = (stats.average - athlete_lap_time) / stats.stdev * 10 + 50;
 
-			member.stats[lap] = {
-				time: member_lap_time,
+			athlete.stats[lap] = {
+				time: athlete_lap_time,
 				ranking, percentile, score,
 			};
 		})
 
-		return member;
+		return athlete;
 	}
 };

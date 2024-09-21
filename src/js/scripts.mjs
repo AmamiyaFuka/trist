@@ -78,13 +78,13 @@ const initializer = (async () => {
 			g.result.setData(result);
 
 			if (g.race) {
-				const initial_member_ids = [q.members].flat();
-				g.result.setMembers(result.filter(x => initial_member_ids.includes(x.number)));
+				const initial_athlete_ids = [q.athletes].flat();
+				g.result.setAthletes(result.filter(x => initial_athlete_ids.includes(x.number)));
 			} else {
 				// サンプルモードの時は、ランダムに4名表示する
 				for (let i = 0; i < 4; i++) {
 					const k = Math.floor(Math.random() * result.length);
-					g.result.addMember(result[k]);
+					g.result.addAthlete(result[k]);
 				}
 			}
 		});
@@ -97,7 +97,7 @@ const update_search_string = () => {
 	if (g.race) {
 		const query = query_manager.setQueryParameter({
 			race: g.race,
-			members: g.result.member_data.map(x => x.number),
+			athletes: g.result.athlete_data.map(x => x.number),
 		});
 		// 起動時 (?launch アクセス時)に最後の閲覧ポイントに飛ぶ
 		window.localStorage.setItem('last', query);
@@ -131,12 +131,12 @@ const draw_summaries = () => {
  */
 const draw_all = () => {
 	// 描画前にメインタイムでソートする
-	g.result.member_data.sort((a, b) => a.stats[g.laps.main].time - b.stats[g.laps.main].time);
+	g.result.athlete_data.sort((a, b) => a.stats[g.laps.main].time - b.stats[g.laps.main].time);
 
 	g.laps.all
 		.forEach(({ name: lap }) => {
 			draw_chart(lap);
-			draw_member_ranking(lap);
+			draw_athlete_ranking(lap);
 		});
 
 	draw_summaries();
@@ -146,15 +146,15 @@ const draw_all = () => {
  * ランキング要素を描画する
  * @param {Lap} lap 
  */
-const draw_member_ranking = lap => {
+const draw_athlete_ranking = lap => {
 	// 一度、内容を全て消去する
 	g.context[lap].panel.querySelector('ul.ranking').textContent = '';
 
 	let front = null;
 	const parent = g.context[lap].panel.querySelector('ul.ranking');
 
-	g.result.member_data
-		.map((member, i) => ({ color: color_pallets.indexOf(i), display: member.display_name, time: member.stats[lap].time }))
+	g.result.athlete_data
+		.map((athlete, i) => ({ color: color_pallets.indexOf(i), display: athlete.display_name, time: athlete.stats[lap].time }))
 		.sort((a, b) => !a.time ? 1 : !b.time ? -1 : a.time - b.time) // No dataは最後にする
 		.map(x => {
 			const d = x.time - front;
@@ -216,7 +216,7 @@ const draw_chart = lap => {
 			fill: true,
 		}, {
 			showLine: false,
-			data: g.result.member_data,
+			data: g.result.athlete_data,
 			parsing: { xAxisKey: `stats.${lap}.time`, yAxisKey: `stats.${lap}.ranking` },
 			order: 1,
 			pointRadius: 8,
@@ -317,40 +317,40 @@ window.addEventListener('load', () => {
 	templater.init(document, 'template');
 
 	// メンバー追加・削除要素作成
-	const active_member_list_element = document.querySelector('#member_list');
-	const new_member_list_element = document.querySelector('#new_member_list');
+	const active_athlete_list_element = document.querySelector('#athlete_list');
+	const new_athlete_list_element = document.querySelector('#new_athlete_list');
 
 	/**
 	 * 
-	 * @param {PersonResult} member_data 
+	 * @param {PersonResult} athlete_data 
 	 * @param {'add'|'remove'} mode add: メンバー追加候補状態 remove: 既にメンバーに追加されてチャートに描画されてる状態 
 	 */
-	const generate_member_list_element = (member_data, mode) => {
-		const elem = templater.generate('member_list_template', {
-			'.display_name': member_data.display_name,
-			'.number': member_data.number,
+	const generate_athlete_list_element = (athlete_data, mode) => {
+		const elem = templater.generate('athlete_list_template', {
+			'.display_name': athlete_data.display_name,
+			'.number': athlete_data.number,
 		});
 
 		const button = elem.querySelector('button');
 
-		button.setAttribute('data-member-update-mode', mode);
+		button.setAttribute('data-athlete-update-mode', mode);
 
 		button.addEventListener('click', () => {
-			const mode = button.getAttribute('data-member-update-mode');
+			const mode = button.getAttribute('data-athlete-update-mode');
 
 			if (mode === 'add') {
-				button.setAttribute('data-member-update-mode', 'remove');
+				button.setAttribute('data-athlete-update-mode', 'remove');
 
-				new_member_list_element.removeChild(elem);
-				active_member_list_element.appendChild(elem);
+				new_athlete_list_element.removeChild(elem);
+				active_athlete_list_element.appendChild(elem);
 
-				g.result.addMember(member_data);
+				g.result.addAthlete(athlete_data);
 			} else if (mode === 'remove') {
-				active_member_list_element.removeChild(elem);
+				active_athlete_list_element.removeChild(elem);
 
-				g.result.removeMember(member_data);
+				g.result.removeAthlete(athlete_data);
 			} else {
-				throw new Error('Unset data-member-update-mode');
+				throw new Error('Unset data-athlete-update-mode');
 			}
 
 			update_search_string();
@@ -358,7 +358,7 @@ window.addEventListener('load', () => {
 			// 関係する要素の再描画処理
 			g.laps.all.forEach(({ name: lap }) => {
 				g.context[lap]?.chart?.update();
-				draw_member_ranking(lap);
+				draw_athlete_ranking(lap);
 			});
 			draw_summaries();
 		});
@@ -425,8 +425,8 @@ window.addEventListener('load', () => {
 		})
 		.then(() => {
 			// Nav内の初期メンバーリスト要素を作る
-			g.result.member_data.map(d => generate_member_list_element(d, 'remove'))
-				.forEach(elem => active_member_list_element.appendChild(elem));
+			g.result.athlete_data.map(d => generate_athlete_list_element(d, 'remove'))
+				.forEach(elem => active_athlete_list_element.appendChild(elem));
 		})
 		.then(() => {
 			// Groupフィルタ要素を作る
@@ -466,25 +466,25 @@ window.addEventListener('load', () => {
 		})
 		.then(() => {
 			// メンバー追加フォーム
-			document.querySelector('#new_member_input').addEventListener('input', event => {
-				new_member_list_element.textContent = '';
+			document.querySelector('#new_athlete_input').addEventListener('input', event => {
+				new_athlete_list_element.textContent = '';
 
 				const v = event.target.value;
 				if (v === '') return;
 
 				g.result
 					.getResults(x => x.number === v || x.display_name.includes(v))
-					.filter(x => !g.result.member_data.includes(x))
-					.map(x => generate_member_list_element(x, 'add'))
-					.forEach(x => new_member_list_element.appendChild(x));
+					.filter(x => !g.result.athlete_data.includes(x))
+					.map(x => generate_athlete_list_element(x, 'add'))
+					.forEach(x => new_athlete_list_element.appendChild(x));
 			});
 		})
 		.then(() => {
 			// サマリー登録
 			g.summaries.push(
-				new LapScoreSummary(g.laps.sub, g.result.member_data, document.querySelector('#lap_score')));
+				new LapScoreSummary(g.laps.sub, g.result.athlete_data, document.querySelector('#lap_score')));
 			g.summaries.push(
-				new LapTimeSummary(g.laps.sub, g.result.member_data, document.querySelector('#lap_time')));
+				new LapTimeSummary(g.laps.sub, g.result.athlete_data, document.querySelector('#lap_time')));
 		})
 		.then(() => draw_all());
 

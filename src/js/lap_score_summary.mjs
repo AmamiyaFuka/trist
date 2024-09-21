@@ -20,15 +20,15 @@ export default class LapScoreSummary {
 	#laps;
 
 	/** @type {Array<any>} */
-	#member_data;
+	#athlete_data;
 
 	/**
 	 * 
 	 * @param {Array<LapInfo>} laps 
-	 * @param {Array<PersonResult>} member_data 
+	 * @param {Array<PersonResult>} athlete_data 
 	 * @param {Element} container 
 	 */
-	constructor(laps, member_data, container) {
+	constructor(laps, athlete_data, container) {
 		const row_class_name = 'template-lap_score';
 		const sub_class_name = 'template-lap_score_sub_1';
 
@@ -52,7 +52,7 @@ export default class LapScoreSummary {
 
 		this.container = container;
 		this.#laps = laps;
-		this.#member_data = member_data;
+		this.#athlete_data = athlete_data;
 
 		this.#root_element = container.querySelector('.lap_score_chart_root');
 		this.#insert_position = container.querySelector('.lap_score_footer_start');
@@ -68,19 +68,19 @@ export default class LapScoreSummary {
 	}
 
 	update() {
-		if (this.#member_data.length < 1) return false;
+		if (this.#athlete_data.length < 1) return false;
 
 		this.clear();
 
-		this.#member_data
-			.forEach((member, i) => {
+		this.#athlete_data
+			.forEach((athlete, i) => {
 				const row = this.#row_templater.generate('lap_score_row', {
-					'.name': member.display_name,
+					'.name': athlete.display_name,
 				});
 
 				this.#laps.forEach(({ name: lap }) => {
-					if (!member.stats) return;
-					const v = member.stats[lap]?.score;
+					if (!athlete.stats) return;
+					const v = athlete.stats[lap]?.score;
 					/** @type {HTMLElement} */
 					const elem = row.querySelector('.stack_bar.' + lap);
 

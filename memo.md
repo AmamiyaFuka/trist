@@ -8,15 +8,12 @@
 # 使用素材
 - Bootstrap
 - IcoMoon - Free: https://icomoon.io/app/
-  - qr-code, link
+  - qr-code, link, star
 - SILHOUETTE ILLUST:  https://www.silhouette-illust.com/
   - 水泳、自転車競技、マラソン
 - X
   - X公式ロゴ
 
-# SNS
-Xシェア用リンク 
-https://x.com/intent/tweet?text=表示するテキスト&url=ページのURL
 
 # SVGを利用するとき
 svg
@@ -33,10 +30,7 @@ svg
 
 
 # ToDo
-- Sectionフィルタ
 - 代表ペースの軸を追加する
   - Swim: 40 sec/50m, 50 sec/50m, ...
   - Bike: 25 km/h, 30 km/h, ...
   - Run : 4 min/km, 5 min/km, ...
-- URLのシェア機能
-  - リンクをコピー、QRを画面に表示、Xにポスト

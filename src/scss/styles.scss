@@ -192,15 +192,6 @@ section.panel {
 	}
 }
 
-#navi {
-	margin-top: 12ex;
-	height: calc(90vh - 12ex);
-}
-
-.debug {
-	display: none;
-}
-
 .panel.summary {
 	.name {
 		margin-right: 0.5em;
@@ -211,7 +202,7 @@ section.panel {
 	}
 }
 
-.member-list-item {
+.athlete-list-item {
 	.number::before {
 		content: '(';
 	}
@@ -220,13 +211,13 @@ section.panel {
 		content: ')';
 	}
 
-	button[data-member-update-mode='add'] {
+	button[data-athlete-update-mode='add'] {
 		.user-minus {
 			display: none;
 		}
 	}
 
-	button[data-member-update-mode='remove'] {
+	button[data-athlete-update-mode='remove'] {
 		.user-plus {
 			display: none;
 		}
