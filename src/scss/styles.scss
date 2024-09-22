@@ -43,25 +43,33 @@ img.emoji {
 	--swim-high-color: hsl(198deg 69% 45%);
 	--bike-high-color: hsl(0deg 100% 45%);
 	--run-high-color: hsl(134deg 48% 45%);
+
+	--strong-color: gray;
+	--weak-color: hsl(0deg 0% 45% / 0.5);
 }
 
-.record .marker {
-	background: linear-gradient(transparent 65%, var(--record-color) 65%, var(--record-color) 100%);
-	width: fit-content;
+.record {
+	--weak-color: var(--record-color);
+	--strong-color: var(--record-high-color);
 }
 
-.swim .marker {
-	background: linear-gradient(transparent 65%, var(--swim-color) 65%, var(--swim-color) 100%);
-	width: fit-content;
+.swim {
+	--weak-color: var(--swim-color);
+	--strong-color: var(--swim-high-color);
 }
 
-.bike .marker {
-	background: linear-gradient(transparent 65%, var(--bike-color) 65%, var(--bike-color) 100%);
-	width: fit-content;
+.bike {
+	--weak-color: var(--bike-color);
+	--strong-color: var(--bike-high-color);
 }
 
-.run .marker {
-	background: linear-gradient(transparent 65%, var(--run-color) 65%, var(--run-color) 100%);
+.run {
+	--weak-color: var(--run-color);
+	--strong-color: var(--run-high-color);
+}
+
+h2.marker {
+	background: linear-gradient(transparent 65%, var(--weak-color) 65%, var(--weak-color) 100%);
 	width: fit-content;
 }
 
@@ -250,23 +258,49 @@ section.panel {
 		text-indent: 1em;
 
 		// デフォルト値
-		color: gray;
+		
+		color: var(--weak-color);
 		--col-count: 0;
-		
-		&.swim { color: var(--swim-color); }
-		&.bike { color: var(--bike-color); }
-		&.run { color: var(--run-color); }
-		
-		&.c0 { --col-count: 0; }
-		&.c1 { --col-count: 1; }
-		&.c2 { --col-count: 2; }
-		&.c3 { --col-count: 3; }
-		&.c4 { --col-count: 4; }
-		&.c5 { --col-count: 5; }
-		&.c6 { --col-count: 6; }
-		&.c7 { --col-count: 7; }
-		&.c8 { --col-count: 8; }
-		&.c9 { --col-count: 9; }
+
+		&.c0 {
+			--col-count: 0;
+		}
+
+		&.c1 {
+			--col-count: 1;
+		}
+
+		&.c2 {
+			--col-count: 2;
+		}
+
+		&.c3 {
+			--col-count: 3;
+		}
+
+		&.c4 {
+			--col-count: 4;
+		}
+
+		&.c5 {
+			--col-count: 5;
+		}
+
+		&.c6 {
+			--col-count: 6;
+		}
+
+		&.c7 {
+			--col-count: 7;
+		}
+
+		&.c8 {
+			--col-count: 8;
+		}
+
+		&.c9 {
+			--col-count: 9;
+		}
 
 		--grad-start: calc(100% / var(--lap-count) * var(--col-count) + 1%);
 
@@ -346,23 +380,8 @@ section.panel {
 		/* 要素の高さに合わせる（ここでは、親要素のgrid-autoで × この要素の相対height） */
 		line-height: 0.74rem;
 		padding-inline-end: 0.3rem;
-	}
-
-	.swim {
-		background-color: var(--swim-high-color);
-	}
-
-	.bike {
-		background-color: var(--bike-high-color);
-	}
-
-	.run {
-		background-color: var(--run-high-color);
-	}
-
-	/* Not use */
-	.record {
-		background-color: var(--record-high-color);
+		
+		background-color: var(--strong-color);
 	}
 
 	.score-bg {
@@ -437,5 +456,37 @@ section.panel {
 		img {
 			margin: auto;
 		}
+	}
+}
+
+.personal_result {
+	--count-columns: 5;
+
+	.start-col {
+		grid-column: 1;
+	}
+
+	.marker {
+		border-width: 0.9rem;
+		translate: 0 -1rem;
+		color: var(--weak-color);
+		opacity: 0.7;
+	}
+
+	.hr {
+		grid-column: 1 / span var(--count-columns);
+	}
+
+	.picto {
+		height: 1.4rem;
+		justify-self: end;
+	}
+
+	.d-grid {
+		text-align: end;
+	}
+
+	.t-header {
+		text-align: center;
 	}
 }
