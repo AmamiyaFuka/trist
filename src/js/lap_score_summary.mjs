@@ -64,7 +64,8 @@ export default class LapScoreSummary {
 	}
 
 	clear() {
-		while (this.#root_element.firstElementChild !== this.#insert_position) this.#root_element.removeChild(this.#root_element.firstElementChild);
+		while (this.#root_element.firstElementChild !== this.#insert_position) 
+			this.#root_element.removeChild(this.#root_element.firstElementChild);
 	}
 
 	update() {

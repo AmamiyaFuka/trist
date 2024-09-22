@@ -461,6 +461,7 @@ section.panel {
 
 .personal_result {
 	--count-columns: 5;
+	--section-display: 'block';
 
 	.start-col {
 		grid-column: 1;
@@ -488,5 +489,9 @@ section.panel {
 
 	.t-header {
 		text-align: center;
+	}
+
+	.section {
+		display: var(--section-display);
 	}
 }

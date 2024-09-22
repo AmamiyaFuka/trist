@@ -5,9 +5,9 @@
 /**
  * @typedef TimeStats
  * @property {number} time
- * @property {number?} ranking
- * @property {number?} score
- * @property {number?} percentile
+ * @property {number} [ranking]
+ * @property {number} [score]
+ * @property {number} [percentile]
  */
 
 /**
@@ -60,7 +60,7 @@ export default class DataManagerTri {
 		this.#laps = laps;
 
 		// time_ranking_data はすぐに参照できるように初期化する
-		this.time_ranking_data = Object.fromEntries(laps.map(({name: lap}) => [lap, {
+		this.time_ranking_data = Object.fromEntries(laps.map(({ name: lap }) => [lap, {
 			data: [],
 			stats: {
 				count: 0,
@@ -96,7 +96,7 @@ export default class DataManagerTri {
 	setFilter(predicate) {
 		const filtered = this.#data.filter(predicate);
 
-		this.#laps.forEach(({name: lap}) => {
+		this.#laps.forEach(({ name: lap }) => {
 			const sorted_times = filtered.map(d => d.stats[lap]?.time).filter(x => x).sort((a, b) => a - b);
 
 			this.time_ranking_data[lap].data.splice(0, Infinity,
@@ -212,7 +212,7 @@ export default class DataManagerTri {
 	 * @returns {PersonData}
 	 */
 	#calculateAthleteStats(athlete) {
-		this.#laps.forEach(({name: lap}) => {
+		this.#laps.forEach(({ name: lap }) => {
 			// ループの外で十分なはずなのに、ここにいれないとlint errorになる。きもちわるい
 			if (!(athlete.stats)) athlete.stats = {};
 
