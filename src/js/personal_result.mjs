@@ -1,9 +1,10 @@
-import BootstrapTemplate from "./bootstrap_template.mjs";
+//@ts-check
+import BootstrapTemplate from './bootstrap_template.mjs';
+import DataManager from './data_manager.mjs';
 import Utils from './utils.mjs';
 
 /**
  * @constructor
- * @extends {Summary}
  */
 export default class PersonalResult {
 	/** @type {Element} */
@@ -13,17 +14,16 @@ export default class PersonalResult {
 	#root_element;
 	/** @type {BootstrapTemplate} */
 	#row_templater;
-	/** @type {Array<PersonalResult} */
-	#athletes;
-	/** @type {Array<LapInfo>} */
+	/** @type {DataManager} */
+	#data;
+	/** @type {{keys:Array<LapInfo>, main:string?}} */
 	#laps;
 
 	/**
-	 * @param {Array<LapInfo>} laps 
-	 * @param {Array<PersonResult>} athletes 
+	 * @param {DataManagerTri} data
 	 * @param {Element} container 
 	 */
-	constructor(laps, athletes, container) {
+	constructor(data, container) {
 		const row_class_name = 'template-personal_result';
 
 		this.#row_templater = new BootstrapTemplate();
@@ -31,8 +31,8 @@ export default class PersonalResult {
 
 		this.#root_element = container.querySelector('.personal_result_root');
 		this.container = container;
-		this.#laps = laps;
-		this.#athletes = athletes;
+		this.#data = data;
+		this.#laps = data.getLaps();
 
 		// コピー部分用にコンテナ直下の構造を変える
 		const div = document.createElement('div');
@@ -48,14 +48,13 @@ export default class PersonalResult {
 	}
 
 	update() {
-		if (this.#athletes.length !== 1) return false;
+		if (this.#data.athlete_data.length !== 1) return false;
 
-
-		const label = {record: '総合'}
+		const label = { record: '総合' }
 
 		this.clear();
 
-		const r = this.#athletes[0];
+		const r = this.#data.athlete_data[0];
 		this.#root_element.querySelector('.section').textContent = r.section;
 		this.#root_element.style.setProperty('--section-display', r.section ? 'block' : 'none');
 
@@ -63,22 +62,51 @@ export default class PersonalResult {
 		const dummy = document.createElement('div');
 		this.#root_element.appendChild(dummy);
 
-		this.#laps.forEach(({name, range, units}, i) => {
+		const main_key = this.#laps.main;
+
+		const _str = number => {
+			const h = number % 100;
+			if (h >= 10 && h <= 20) return 'th';
+
+			const t = number % 10;
+			switch (t) {
+				case NaN:
+				case Infinity:
+				case -Infinity:
+				case 0:
+					return '';
+				case 1:
+					return 'st';
+				case 2:
+					return 'nd';
+				case 3:
+					return 'rd';
+				default:
+					return 'th';
+			}
+		};
+
+		this.#laps.keys.forEach(({ name, range, units }) => {
+			const ranking_all = this.#data.calculateRanking(r, name, 'all').ranking;
+			const ranking_section = this.#data.calculateRanking(r, name, 'section').ranking;
+
 			const elem = this.#row_templater.generate('personal_result_row', {
 				'.distance': range + units,
 				'.finish': Utils.sec_to_hhmmss_non_zero(r.stats?.[name]?.time),
-				'.ranking': r.stats?.[name]?.ranking,
-				'.section': r.stats?.[name]?.ranking_section,
+				'.ranking .value': ranking_all.toString(),
+				'.ranking .ord': _str(ranking_all),
+				'.section .value': ranking_section.toString(),
+				'.section .ord': _str(ranking_section),
 			});
-			elem.querySelector('img').src = `/assets/icon/${name}.png`;
 			elem.querySelector('hr').classList.add(name);
 
-			if (i === 0) {
+			if (name === main_key) {
 				elem.querySelector('.kind').textContent = label[name] ?? name;
 				elem.querySelector('.distance').textContent = '';
-				while(elem.firstElementChild) this.#root_element.appendChild(elem.firstElementChild);
+				while (elem.firstElementChild) this.#root_element.appendChild(elem.firstElementChild);
 			} else {
-				while(elem.firstElementChild) this.#root_element.insertBefore(elem.firstElementChild, dummy);
+				elem.querySelector('img').src = `/assets/icon/${name}.png`;
+				while (elem.firstElementChild) this.#root_element.insertBefore(elem.firstElementChild, dummy);
 			}
 		});
 

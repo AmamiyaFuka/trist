@@ -34,6 +34,11 @@ img.emoji {
 }
 
 :root {
+	--record-weakest-color: hsl(43deg 100% 45% / 0.2);
+	--swim-weakest-color: hsl(198deg 69% 45% / 0.2);
+	--bike-weakest-color: hsl(0deg 100% 45% / 0.2);
+	--run-weakest-color: hsl(134deg 48% 45% / 0.2);
+
 	--record-color: hsl(43deg 100% 45% / 0.5);
 	--swim-color: hsl(198deg 69% 45% / 0.5);
 	--bike-color: hsl(0deg 100% 45% / 0.5);
@@ -44,26 +49,31 @@ img.emoji {
 	--bike-high-color: hsl(0deg 100% 45%);
 	--run-high-color: hsl(134deg 48% 45%);
 
-	--strong-color: gray;
+	--weakest-color: hsl(0deg 0% 45% / 0.2);
 	--weak-color: hsl(0deg 0% 45% / 0.5);
+	--strong-color: gray;
 }
 
 .record {
+	--weakest-color: var(--record-weakest-color);
 	--weak-color: var(--record-color);
 	--strong-color: var(--record-high-color);
 }
 
 .swim {
+	--weakest-color: var(--swim-weakest-color);
 	--weak-color: var(--swim-color);
 	--strong-color: var(--swim-high-color);
 }
 
 .bike {
+	--weakest-color: var(--bike-weakest-color);
 	--weak-color: var(--bike-color);
 	--strong-color: var(--bike-high-color);
 }
 
 .run {
+	--weakest-color: var(--run-weakest-color);
 	--weak-color: var(--run-color);
 	--strong-color: var(--run-high-color);
 }
@@ -258,7 +268,7 @@ section.panel {
 		text-indent: 1em;
 
 		// デフォルト値
-		
+
 		color: var(--weak-color);
 		--col-count: 0;
 
@@ -380,7 +390,7 @@ section.panel {
 		/* 要素の高さに合わせる（ここでは、親要素のgrid-autoで × この要素の相対height） */
 		line-height: 0.74rem;
 		padding-inline-end: 0.3rem;
-		
+
 		background-color: var(--strong-color);
 	}
 
@@ -470,7 +480,7 @@ section.panel {
 	.marker {
 		border-width: 0.9rem;
 		translate: 0 -1rem;
-		color: var(--weak-color);
+		color: var(--weakest-color);
 		opacity: 0.7;
 	}
 
@@ -493,5 +503,9 @@ section.panel {
 
 	.section {
 		display: var(--section-display);
+	}
+
+	.ord {
+		font-size: small;
 	}
 }

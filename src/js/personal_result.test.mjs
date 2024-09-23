@@ -1,6 +1,6 @@
 import PersonResult from './personal_result.mjs';
 import BootstrapTemplate from './bootstrap_template.mjs';
-import data from '../assets/result/sample.json' with {type:'json'};
+import data from '../assets/result/sample.json' with {type: 'json'};
 import DataManager from './data_manager.mjs';
 
 window.addEventListener('load', () => {
@@ -21,12 +21,22 @@ window.addEventListener('load', () => {
 		// 一つ目、オーソドックスなもの。見本と同じデータ
 		const x = test_views[test_view_index++];
 
-		const data_manager = new DataManager(data.course.laps.keys);
+		const data_manager = new DataManager(data.course.laps);
 		data_manager.setData(data.result);
 		data_manager.addAthlete(data.result[1]);
 
-		const s = new PersonResult(data.course.laps.keys, data_manager.athlete_data, x);
+		const s = new PersonResult(data_manager, x);
 		s.update();
+
+		const button = document.createElement('button');
+		button.textContent = 'Random';
+		button.addEventListener('click', () => {
+			const n = Math.floor(Math.random() * data.result.length);
+			data_manager.setAthletes([data.result[n]]);
+			s.update();
+		});
+
+		x.parentElement.appendChild(button);
 	}
 
 

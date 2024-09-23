@@ -74,7 +74,7 @@ const initializer = (async () => {
 
 			g.context = Object.fromEntries(g.laps.all.map(({ name: lap }) => [lap, {}]));
 
-			g.result = new DataManagerTri(g.laps.all);
+			g.result = new DataManagerTri(g.course.laps);
 			g.result.setData(result);
 
 			if (g.race) {
