@@ -19,6 +19,14 @@ export default class PersonalResult {
 	/** @type {{keys:Array<LapInfo>, main:string?}} */
 	#laps;
 
+	/** @type {Object.<string, string>} */
+	#label = {
+		record: '総合',
+		swim: 'スイム',
+		bike: 'バイク',
+		run: 'ラン'
+	};
+
 	/**
 	 * @param {DataManagerTri} data
 	 * @param {Element} container 
@@ -50,8 +58,6 @@ export default class PersonalResult {
 
 	update() {
 		if (this.#data.athlete_data.length !== 1) return false;
-
-		const label = { record: '総合' }
 
 		this.clear();
 
@@ -87,30 +93,57 @@ export default class PersonalResult {
 			}
 		};
 
-		this.#laps.keys.forEach(({ name, range, units }) => {
+		const stats = this.#laps.keys.map(({ name, range, units }) => {
 			const kind = name.split('-')[0];
 			const ranking_all = this.#data.calculateRanking(r, kind, 'all').ranking;
 			const ranking_section = this.#data.calculateRanking(r, kind, 'section').ranking;
 
 			const time = Utils.sec_to_hhmmss_non_zero(r.stats?.[name]?.time);
-			const elem = this.#row_templater.generate('personal_result_row', time ? {
-				'.distance': range + units,
-				'.finish': time,
+
+			return {
+				name,
+				kind,
+				label: this.#label[kind] ?? kind,
+				distance: range + units,
+				finish: time,
+				ranking_all,
+				ranking_section,
+			};
+		});
+
+		stats.forEach(({ name, kind, label, distance, finish, ranking_all, ranking_section }, i) => {
+			const elem = this.#row_templater.generate('personal_result_row', finish ? {
+				'.distance': distance,
+				'.finish': finish,
 				'.ranking .value': ranking_all.toString(),
 				'.ranking .ord': _str(ranking_all),
 				'.section .value': ranking_section.toString(),
 				'.section .ord': _str(ranking_section),
-			} : { '.distance': range + units });
+			} : { '.distance': distance });
 			elem.querySelector('hr').classList.add(kind);
 
 			if (name === main_key) {
-				elem.querySelector('.kind').textContent = label[kind] ?? kind;
+				elem.querySelector('.kind').textContent = label;
 				elem.querySelector('.distance').textContent = '';
 				while (elem.firstElementChild) this.#root_element.appendChild(elem.firstElementChild);
 			} else {
 				elem.querySelector('img').src = `/assets/icon/${kind}.png`;
 				while (elem.firstElementChild) this.#root_element.insertBefore(elem.firstElementChild, dummy);
 			}
+		});
+
+		this.container.querySelector('.copy-text')?.addEventListener('click', event => {
+			event.preventDefault();
+
+			const text = stats
+				.sort((a, b) => a.name === main_key ? 1 : b.name === main_key ? -1 : 0)
+				.filter(({finish}) => finish)
+				.map(({ name, label, ranking_all, finish }, i) => {
+					if (name === main_key) return label + '順位 ' + ranking_all + '位';
+					return finish ? label + ' ' + finish : null;
+				}).filter(x => x).join(', ');
+
+			Utils.copyText(text);
 		});
 
 		return true;
