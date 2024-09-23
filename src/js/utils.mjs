@@ -71,12 +71,20 @@ export default {
 				if (result.state === "granted" || result.state === "prompt") return;
 				throw 'permission request failed.';
 			})
-			.catch(err => {
-				console.log(err);
-			})
+			.catch(err => console.log(err))
 			.finally(() => navigator.clipboard.writeText(text))
 			.catch(err => {
-				navigator.clipboard.write([new ClipboardItem({ 'text/plain': new Blob[text] })]);
+				navigator.clipboard.write([new ClipboardItem({ 'text/plain': new Blob([text]) })]);
 			});
+	},
+
+	copyImage: (blob) => {
+		return navigator.permissions.query({ name: "clipboard-write" })
+			.then((result) => {
+				if (result.state === "granted" || result.state === "prompt") return;
+				throw 'permission request failed.';
+			})
+			.catch(err => console.log(err))
+			.finally(() => navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]));
 	},
 }

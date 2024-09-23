@@ -137,13 +137,29 @@ export default class PersonalResult {
 
 			const text = stats
 				.sort((a, b) => a.name === main_key ? 1 : b.name === main_key ? -1 : 0)
-				.filter(({finish}) => finish)
+				.filter(({ finish }) => finish)
 				.map(({ name, label, ranking_all, finish }, i) => {
 					if (name === main_key) return label + '順位 ' + ranking_all + '位';
 					return finish ? label + ' ' + finish : null;
 				}).filter(x => x).join(', ');
 
 			Utils.copyText(text);
+		});
+
+		this.container.querySelector('.copy-panel')?.addEventListener('click', event => {
+			event.preventDefault();
+			const c_rect = this.container.getBoundingClientRect();
+			const { height } = this.container.querySelector('.copy').getBoundingClientRect();
+			domtoimage.toPng(this.container, { height: c_rect.height - height })
+				.then(uri => {
+					const bytes = atob(uri.split(',')[1]);
+					const mime = uri.split(';')[0].split(':')[1];
+					const buffer = new ArrayBuffer(bytes.length);
+					const array = new Uint8Array(buffer);
+					for (let i = 0; i < bytes.length; i++) array[i] = bytes.charCodeAt(i);
+					const blob = new Blob([buffer], { type: mime });
+					Utils.copyImage(blob);
+				});
 		});
 
 		return true;
