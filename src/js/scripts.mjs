@@ -8,6 +8,7 @@ import Utils from './utils.mjs';
 
 import LapScoreSummary from './lap_score_summary.mjs';
 import LapTimeSummary from './lap_time_summary.mjs';
+import PersonalResult from './personal_result.mjs';
 
 const templater = new BootstrapTemplate();
 const color_pallets = new ColorPallets();
@@ -485,6 +486,8 @@ window.addEventListener('load', () => {
 				new LapScoreSummary(g.laps.sub, g.result.athlete_data, document.querySelector('#lap_score')));
 			g.summaries.push(
 				new LapTimeSummary(g.laps.sub, g.result.athlete_data, document.querySelector('#lap_time')));
+			g.summaries.push(
+				new PersonalResult(g.result, document.querySelector('#personal_result')));
 		})
 		.then(() => draw_all());
 

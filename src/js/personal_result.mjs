@@ -46,6 +46,7 @@ export default class PersonalResult {
 
 		// コピー部分用にコンテナ直下の構造を変える
 		const div = document.createElement('div');
+		div.classList.add('personal_result');
 		container.parentElement.insertBefore(div, container);
 		div.appendChild(container);
 		div.appendChild(container.querySelector('.copy'));
