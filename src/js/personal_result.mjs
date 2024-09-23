@@ -27,6 +27,9 @@ export default class PersonalResult {
 		run: 'ラン'
 	};
 
+	/** @type {string} */
+	#text_result = '';
+
 	/**
 	 * @param {DataManagerTri} data
 	 * @param {Element} container 
@@ -48,6 +51,26 @@ export default class PersonalResult {
 		div.appendChild(container.querySelector('.copy'));
 
 		this.container = div;
+
+		// 画像で保存イベント処理
+		this.container.querySelector('.save-panel').addEventListener('click', event => {
+			event.preventDefault();
+			const c_rect = this.container.getBoundingClientRect();
+			const { height } = this.container.querySelector('.copy').getBoundingClientRect();
+			domtoimage.toPng(this.container, { height: c_rect.height - height })
+				.then(uri => {
+					const a = document.createElement('a');
+					a.setAttribute('href', uri);
+					a.setAttribute('download', `result.png`);
+					a.click();
+				});
+		});
+
+		// テキストでコピー処理
+		this.container.querySelector('.copy-text').addEventListener('click', event => {
+			event.preventDefault();
+			Utils.copyText(this.#text_result);
+		});
 	}
 
 	clear() {
@@ -132,35 +155,14 @@ export default class PersonalResult {
 			}
 		});
 
-		this.container.querySelector('.copy-text')?.addEventListener('click', event => {
-			event.preventDefault();
-
-			const text = stats
-				.sort((a, b) => a.name === main_key ? 1 : b.name === main_key ? -1 : 0)
-				.filter(({ finish }) => finish)
-				.map(({ name, label, ranking_all, finish }, i) => {
-					if (name === main_key) return label + '順位 ' + ranking_all + '位';
-					return finish ? label + ' ' + finish : null;
-				}).filter(x => x).join(', ');
-
-			Utils.copyText(text);
-		});
-
-		this.container.querySelector('.copy-panel')?.addEventListener('click', event => {
-			event.preventDefault();
-			const c_rect = this.container.getBoundingClientRect();
-			const { height } = this.container.querySelector('.copy').getBoundingClientRect();
-			domtoimage.toPng(this.container, { height: c_rect.height - height })
-				.then(uri => {
-					const bytes = atob(uri.split(',')[1]);
-					const mime = uri.split(';')[0].split(':')[1];
-					const buffer = new ArrayBuffer(bytes.length);
-					const array = new Uint8Array(buffer);
-					for (let i = 0; i < bytes.length; i++) array[i] = bytes.charCodeAt(i);
-					const blob = new Blob([buffer], { type: mime });
-					Utils.copyImage(blob);
-				});
-		});
+		// コピー用のテキストを更新
+		this.#text_result = stats
+			.sort((a, b) => a.name === main_key ? 1 : b.name === main_key ? -1 : 0)
+			.filter(({ finish }) => finish)
+			.map(({ name, label, ranking_all, finish }, i) => {
+				if (name === main_key) return label + '順位 ' + ranking_all + '位';
+				return finish ? label + ' ' + finish : null;
+			}).filter(x => x).join(', ');
 
 		return true;
 	}

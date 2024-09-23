@@ -36,7 +36,7 @@ window.addEventListener('load', () => {
 			s.update();
 		});
 
-		x.parentElement.appendChild(button);
+		document.body.appendChild(button);
 	}
 
 
