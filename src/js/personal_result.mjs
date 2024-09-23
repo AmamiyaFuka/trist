@@ -30,15 +30,16 @@ export default class PersonalResult {
 		this.#row_templater.init(container, row_class_name);
 
 		this.#root_element = container.querySelector('.personal_result_root');
-		this.container = container;
 		this.#data = data;
 		this.#laps = data.getLaps();
 
 		// コピー部分用にコンテナ直下の構造を変える
 		const div = document.createElement('div');
-		this.container.parentElement.insertBefore(div, this.container);
+		container.parentElement.insertBefore(div, this.container);
 		div.appendChild(this.container);
 		div.appendChild(this.container.querySelector('.copy'));
+
+		this.container = div;
 	}
 
 	clear() {
@@ -87,25 +88,27 @@ export default class PersonalResult {
 		};
 
 		this.#laps.keys.forEach(({ name, range, units }) => {
-			const ranking_all = this.#data.calculateRanking(r, name, 'all').ranking;
-			const ranking_section = this.#data.calculateRanking(r, name, 'section').ranking;
+			const kind = name.split('-')[0];
+			const ranking_all = this.#data.calculateRanking(r, kind, 'all').ranking;
+			const ranking_section = this.#data.calculateRanking(r, kind, 'section').ranking;
 
-			const elem = this.#row_templater.generate('personal_result_row', {
+			const time = Utils.sec_to_hhmmss_non_zero(r.stats?.[name]?.time);
+			const elem = this.#row_templater.generate('personal_result_row', time ? {
 				'.distance': range + units,
-				'.finish': Utils.sec_to_hhmmss_non_zero(r.stats?.[name]?.time),
+				'.finish': time,
 				'.ranking .value': ranking_all.toString(),
 				'.ranking .ord': _str(ranking_all),
 				'.section .value': ranking_section.toString(),
 				'.section .ord': _str(ranking_section),
-			});
-			elem.querySelector('hr').classList.add(name);
+			} : { '.distance': range + units });
+			elem.querySelector('hr').classList.add(kind);
 
 			if (name === main_key) {
-				elem.querySelector('.kind').textContent = label[name] ?? name;
+				elem.querySelector('.kind').textContent = label[kind] ?? kind;
 				elem.querySelector('.distance').textContent = '';
 				while (elem.firstElementChild) this.#root_element.appendChild(elem.firstElementChild);
 			} else {
-				elem.querySelector('img').src = `/assets/icon/${name}.png`;
+				elem.querySelector('img').src = `/assets/icon/${kind}.png`;
 				while (elem.firstElementChild) this.#root_element.insertBefore(elem.firstElementChild, dummy);
 			}
 		});

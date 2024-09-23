@@ -251,6 +251,6 @@ export default class DataManagerTri {
 			mode === 'section' ? this.#data.filter(x => x.section === athlete.section) :
 			[];
 		const n = p.filter(d => d.stats[lap_name]?.time < athlete.stats[lap_name].time).length;
-		return { ranking: n, total_count: p.length };
+		return { ranking: n + 1, total_count: p.length + 1 };
 	}
 };

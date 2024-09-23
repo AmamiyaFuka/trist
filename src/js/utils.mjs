@@ -7,6 +7,8 @@ export default {
 	 * @returns {string}
 	 */
 	sec_to_hhmmss: (sec) => {
+		if (isNaN(sec)) return '';
+
 		const h = Math.floor(sec / 3600);
 		const m = Math.floor((sec - h * 3600) / 60);
 		const s = sec % 60;
@@ -21,6 +23,8 @@ export default {
 	 * @returns {string}
 	 */
 	sec_to_hhmmss_non_zero: sec => {
+		if (isNaN(sec)) return '';
+
 		const h = Math.floor(sec / 3600);
 		const m = Math.floor((sec - h * 3600) / 60);
 		const s = sec % 60;
@@ -39,6 +43,8 @@ export default {
 	 * @returns {string}
 	 */
 	sec_to_mss_with_sign: (sec) => {
+		if (isNaN(sec)) return '';
+
 		let sign = '±';
 		if (sec < 0) {
 			sign = '-';
