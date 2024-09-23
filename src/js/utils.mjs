@@ -1,4 +1,4 @@
-//@ts-check
+// @ts-check
 export default {
 	/**
 	 * 秒数をHH:mm:ss表記にする
@@ -33,7 +33,7 @@ export default {
 			if (m === 0) return s.toString();
 			else return m.toString() + ':' + ('00' + s).slice(-2);
 		}
-		
+
 		return h.toString() + ':' + [m, s].map(x => ('00' + x).slice(-2)).join(':');
 	},
 
@@ -57,5 +57,26 @@ export default {
 		const s = sec % 60;
 
 		return `${sign}${m}:${('00' + s).slice(-2)}`;
+	},
+
+	/**
+	 * クリップボードにテキストをコピーします
+	 * 環境の違いを吸収するための関数です
+	 * @param {string} text 
+	 * @returns {Promise<>}
+	 */
+	copyText: text => {
+		return navigator.permissions.query({ name: "clipboard-write" })
+			.then((result) => {
+				if (result.state === "granted" || result.state === "prompt") return;
+				throw 'permission request failed.';
+			})
+			.catch(err => {
+				console.log(err);
+			})
+			.finally(() => navigator.clipboard.writeText(text))
+			.catch(err => {
+				navigator.clipboard.write([new ClipboardItem({ 'text/plain': new Blob[text] })]);
+			});
 	},
 }

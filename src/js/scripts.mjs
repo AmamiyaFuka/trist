@@ -541,25 +541,9 @@ window.addEventListener('load', () => {
 		const no_hide_toast_bootstrap = bootstrap.Toast.getOrCreateInstance(no_hide_toast);
 
 		document.querySelector('#share-link').addEventListener('click', () => {
-			navigator.permissions.query({ name: "clipboard-write" })
-				.then((result) => {
-					if (result.state === "granted" || result.state === "prompt") return;
-					throw 'permission request failed.';
-				})
-				.catch(err => {
-					console.log(err);
-				})
-				.finally(() => navigator.clipboard.writeText(window.location.href))
-				.catch(err => {
-					console.log(err);
-					// iOS Safari向け。 navigator.clipboard.writeText ではなく、 navigator.clipboard.write を使う
-					navigator.clipboard.write([new ClipboardItem({ 'text/plain': new Blob['url'] })]);
-				})
+			Utils.copyText(window.location.href)
 				.then(() => 'シェアリンクをコピーしました')
-				.catch(err => {
-					console.log(err);
-					return 'シェアリンクのコピーに失敗しました<br>別の方法でシェアしてください';
-				})
+				.catch(err => 'シェアリンクのコピーに失敗しました<br>別の方法でシェアしてください')
 				.then(message => {
 					hide_toast.querySelector('.toast-message').innerHTML = message;
 					hide_toast_bootstrap.show();
