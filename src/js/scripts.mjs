@@ -367,6 +367,25 @@ window.addEventListener('load', () => {
 		return elem;
 	};
 
+	/** Toast準備 */
+	class ToastManger {
+		/** @type {HTMLElement} */
+		#toast;
+		/** @type {Toast} */
+		#toast_bootstrap;
+
+		constructor() {
+			this.#toast = document.querySelector('#hide_toast');
+			this.#toast_bootstrap = bootstrap.Toast.getOrCreateInstance(hide_toast);
+		}
+
+		show(innerHtml) {
+			this.#toast.querySelector('.toast-message').innerHTML = innerHtml;
+			this.#toast_bootstrap.show();
+		}
+	};
+	const toast = new ToastManger();
+
 	const lap_names = {
 		record: '総合',
 		swim: 'スイム',
@@ -486,8 +505,12 @@ window.addEventListener('load', () => {
 				new LapScoreSummary(g.laps.sub, g.result.athlete_data, document.querySelector('#lap_score')));
 			g.summaries.push(
 				new LapTimeSummary(g.laps.sub, g.result.athlete_data, document.querySelector('#lap_time')));
-			g.summaries.push(
-				new PersonalResult(g.result, document.querySelector('#personal_result')));
+
+			{
+				const personal_result = new PersonalResult(g.result, document.querySelector('#personal_result'));
+				personal_result.addEventListener('copy', event => toast.show(event.detail.success ? 'リザルトをコピーしました' : 'コピーできませんでした'));
+				g.summaries.push(personal_result);
+			}
 		})
 		.then(() => draw_all());
 
@@ -537,9 +560,6 @@ window.addEventListener('load', () => {
 
 	{
 		// Share機能
-		const hide_toast = document.querySelector('#hide_toast');
-		const hide_toast_bootstrap = bootstrap.Toast.getOrCreateInstance(hide_toast);
-
 		const no_hide_toast = document.querySelector('#no_hide_toast');
 		const no_hide_toast_bootstrap = bootstrap.Toast.getOrCreateInstance(no_hide_toast);
 
@@ -547,10 +567,7 @@ window.addEventListener('load', () => {
 			Utils.copyText(window.location.href)
 				.then(() => 'シェアリンクをコピーしました')
 				.catch(err => 'シェアリンクのコピーに失敗しました<br>別の方法でシェアしてください')
-				.then(message => {
-					hide_toast.querySelector('.toast-message').innerHTML = message;
-					hide_toast_bootstrap.show();
-				});
+				.then(message => toast.show(message));
 
 		});
 

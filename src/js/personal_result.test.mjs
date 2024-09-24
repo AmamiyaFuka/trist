@@ -26,6 +26,9 @@ window.addEventListener('load', () => {
 		data_manager.addAthlete(data.result[1]);
 
 		const s = new PersonResult(data_manager, x);
+		s.addEventListener('copy', event => {
+			console.log(event.detail.success ? event.detail.text : event.detail.message);
+		});
 		s.update();
 
 		const button = document.createElement('button');

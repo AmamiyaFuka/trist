@@ -6,7 +6,7 @@ import Utils from './utils.mjs';
 /**
  * @constructor
  */
-export default class PersonalResult {
+export default class PersonalResult extends EventTarget {
 	/** @type {Element} */
 	container;
 
@@ -35,6 +35,7 @@ export default class PersonalResult {
 	 * @param {Element} container 
 	 */
 	constructor(data, container) {
+		super();
 		const row_class_name = 'template-personal_result';
 
 		this.#row_templater = new BootstrapTemplate();
@@ -70,7 +71,10 @@ export default class PersonalResult {
 		// テキストでコピー処理
 		this.container.querySelector('.copy-text').addEventListener('click', event => {
 			event.preventDefault();
-			Utils.copyText(this.#text_result);
+			Utils.copyText(this.#text_result)
+				.then(() => ({ success: true, text: this.#text_result }))
+				.catch((err) => ({ success: false, message: err }))
+				.then(detail => this.dispatchEvent(new CustomEvent('copy', { detail })));
 		});
 	}
 
