@@ -336,7 +336,9 @@ window.addEventListener('load', () => {
 
 		button.setAttribute('data-athlete-update-mode', mode);
 
-		button.addEventListener('click', () => {
+		button.addEventListener('click', event => {
+			event.preventDefault();
+
 			const mode = button.getAttribute('data-athlete-update-mode');
 
 			if (mode === 'add') {
