@@ -3,6 +3,8 @@
 
 body {
 	font-family: "Century Gothic", sans-serif;
+
+	--loading-display: 'none';
 }
 
 img.emoji {
@@ -146,6 +148,10 @@ header {
 		grid-auto-flow: dense;
 		grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
 	}
+}
+
+#view > * {
+	display: var(--loading-display);
 }
 
 

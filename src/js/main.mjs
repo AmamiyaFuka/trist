@@ -595,6 +595,8 @@ window.addEventListener('load', () => {
 
 	Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
 		.forEach(elem => new bootstrap.Tooltip(elem));
+
+	document.body.style.setProperty('--loading-display', 'block');
 }, { once: true });
 
 // PWAインストールプロンプトを、ユーザー操作のタイミングで出す
