@@ -8,6 +8,7 @@ import Utils from './utils.mjs';
 
 import LapScoreSummary from './lap_score_summary.mjs';
 import LapTimeSummary from './lap_time_summary.mjs';
+import PersonalResult from './personal_result.mjs';
 
 const templater = new BootstrapTemplate();
 const color_pallets = new ColorPallets();
@@ -74,7 +75,7 @@ const initializer = (async () => {
 
 			g.context = Object.fromEntries(g.laps.all.map(({ name: lap }) => [lap, {}]));
 
-			g.result = new DataManagerTri(g.laps.all);
+			g.result = new DataManagerTri(g.course.laps);
 			g.result.setData(result);
 
 			if (g.race) {
@@ -366,6 +367,25 @@ window.addEventListener('load', () => {
 		return elem;
 	};
 
+	/** Toast準備 */
+	class ToastManger {
+		/** @type {HTMLElement} */
+		#toast;
+		/** @type {Toast} */
+		#toast_bootstrap;
+
+		constructor() {
+			this.#toast = document.querySelector('#hide_toast');
+			this.#toast_bootstrap = bootstrap.Toast.getOrCreateInstance(hide_toast);
+		}
+
+		show(innerHtml) {
+			this.#toast.querySelector('.toast-message').innerHTML = innerHtml;
+			this.#toast_bootstrap.show();
+		}
+	};
+	const toast = new ToastManger();
+
 	const lap_names = {
 		record: '総合',
 		swim: 'スイム',
@@ -485,6 +505,12 @@ window.addEventListener('load', () => {
 				new LapScoreSummary(g.laps.sub, g.result.athlete_data, document.querySelector('#lap_score')));
 			g.summaries.push(
 				new LapTimeSummary(g.laps.sub, g.result.athlete_data, document.querySelector('#lap_time')));
+
+			{
+				const personal_result = new PersonalResult(g.result, document.querySelector('#personal_result'));
+				personal_result.addEventListener('copy', event => toast.show(event.detail.success ? 'リザルトをコピーしました' : 'コピーできませんでした'));
+				g.summaries.push(personal_result);
+			}
 		})
 		.then(() => draw_all());
 
@@ -534,36 +560,14 @@ window.addEventListener('load', () => {
 
 	{
 		// Share機能
-		const hide_toast = document.querySelector('#hide_toast');
-		const hide_toast_bootstrap = bootstrap.Toast.getOrCreateInstance(hide_toast);
-
 		const no_hide_toast = document.querySelector('#no_hide_toast');
 		const no_hide_toast_bootstrap = bootstrap.Toast.getOrCreateInstance(no_hide_toast);
 
 		document.querySelector('#share-link').addEventListener('click', () => {
-			navigator.permissions.query({ name: "clipboard-write" })
-				.then((result) => {
-					if (result.state === "granted" || result.state === "prompt") return;
-					throw 'permission request failed.';
-				})
-				.catch(err => {
-					console.log(err);
-				})
-				.finally(() => navigator.clipboard.writeText(window.location.href))
-				.catch(err => {
-					console.log(err);
-					// iOS Safari向け。 navigator.clipboard.writeText ではなく、 navigator.clipboard.write を使う
-					navigator.clipboard.write([new ClipboardItem({ 'text/plain': new Blob['url'] })]);
-				})
+			Utils.copyText(window.location.href)
 				.then(() => 'シェアリンクをコピーしました')
-				.catch(err => {
-					console.log(err);
-					return 'シェアリンクのコピーに失敗しました<br>別の方法でシェアしてください';
-				})
-				.then(message => {
-					hide_toast.querySelector('.toast-message').innerHTML = message;
-					hide_toast_bootstrap.show();
-				});
+				.catch(err => 'シェアリンクのコピーに失敗しました<br>別の方法でシェアしてください')
+				.then(message => toast.show(message));
 
 		});
 

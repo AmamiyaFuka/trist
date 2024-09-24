@@ -5,9 +5,9 @@
 /**
  * @typedef TimeStats
  * @property {number} time
- * @property {number?} ranking
- * @property {number?} score
- * @property {number?} percentile
+ * @property {number} [ranking]
+ * @property {number} [score]
+ * @property {number} [percentile]
  */
 
 /**
@@ -47,20 +47,20 @@ export default class DataManagerTri {
 	/** @type {Object.<string, ChartDataItem>} */
 	time_ranking_data = {};
 
-	/** @type {Array<LapInfo>} */
-	#laps = [];
+	/** @type {{keys: Array<LapInfo>, main: string?}} */
+	#laps = { keys: [], main: null };
 
 	/** @type {Array<string>} */
 	sections = [];
 
 	/**
-	 * @param {Array<LapInfo>} laps
+	 * @param {{keys: Array<LapInfo>, main: string}} laps
 	 */
 	constructor(laps) {
 		this.#laps = laps;
 
 		// time_ranking_data はすぐに参照できるように初期化する
-		this.time_ranking_data = Object.fromEntries(laps.map(({name: lap}) => [lap, {
+		this.time_ranking_data = Object.fromEntries(laps.keys.map(({ name: lap }) => [lap, {
 			data: [],
 			stats: {
 				count: 0,
@@ -96,7 +96,7 @@ export default class DataManagerTri {
 	setFilter(predicate) {
 		const filtered = this.#data.filter(predicate);
 
-		this.#laps.forEach(({name: lap}) => {
+		this.#laps.keys.forEach(({ name: lap }) => {
 			const sorted_times = filtered.map(d => d.stats[lap]?.time).filter(x => x).sort((a, b) => a - b);
 
 			this.time_ranking_data[lap].data.splice(0, Infinity,
@@ -212,7 +212,7 @@ export default class DataManagerTri {
 	 * @returns {PersonData}
 	 */
 	#calculateAthleteStats(athlete) {
-		this.#laps.forEach(({name: lap}) => {
+		this.#laps.keys.forEach(({ name: lap }) => {
 			// ループの外で十分なはずなのに、ここにいれないとlint errorになる。きもちわるい
 			if (!(athlete.stats)) athlete.stats = {};
 
@@ -230,5 +230,27 @@ export default class DataManagerTri {
 		})
 
 		return athlete;
+	}
+
+	/**
+	 * ラップ情報を返します
+	 * @return {{keys: Array<LapInfo>, main: string?}}
+	 */
+	getLaps() { return this.#laps; }
+
+	/**
+	 * ランキングを計算します
+	 * 比整列のデータから計算するので、比較的遅いです。現在表示中の母集団からのランキングは 'ranking' フィールドを使ってください
+	 * @param {PersonData} athlete
+	 * @param {string} lap_name
+	 * @param {string} [mode='all'] 'all': フィルタに関わらず全体から計算　'section': sectionフィールドに合致する集合から計算
+	 * @returns {{ranking: number | string, total_count: number}}
+	 */
+	calculateRanking(athlete, lap_name, mode = 'all') {
+		const p = mode === 'all' ? this.#data :
+			mode === 'section' ? this.#data.filter(x => x.section === athlete.section) :
+			[];
+		const n = p.filter(d => d.stats[lap_name]?.time < athlete.stats[lap_name].time).length;
+		return { ranking: n + 1, total_count: p.length + 1 };
 	}
 };
