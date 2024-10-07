@@ -1,203 +1,30 @@
-import fs from 'node:fs/promises';
+import express from 'express';
+const app = express();
 
-import Course from './course.mjs';
-import Result from './result.mjs';
-import Formatter from './formatter.mjs';
+app.use('/', express.static('./html'));
 
-const formatter = new Formatter();
+app.get('/jtu', (req, res) => {
+	// レース一覧取得
+	console.log('start to get race list');
 
-// 今はハードコーティング
-const minami_hokkaido = {
-	course: {
-		name: 'アイアンマンジャパン みなみ北海道',
-		short_name: 'IMジャパン',
-		starttime: new Date('2024-09-15T06:30' + '+09:00').getTime(),
-		weather: '曇り',
-		distance: {
-			swim: 3.8,
-			bike: 180,
-			run: 42.2,
-		},
-		locale: '日本, 北海道',
-		url: 'https://triathlon-south-hokkaido.com',
-	},
-	result_id: 'xxx_x', output_file: 'imj_minami-hokkaido_2024'
-};
+	// https://results.jtu.or.jp/api/events/search?cond%5Bevent_name%5D=&range%5Bfrom%5D=0&range%5Bcount%5D=50
+	fetch(`https://results.jtu.or.jp/api/events/search?cond%5Bevent_name%5D=&range%5Bfrom%5D=0&range%5Bcount%5D=20`)
+		.then(res => res.json())
+		.then(json => res.json(json));
+});
 
-const murakami_2023 = {
-	course: {
-		name: '2023村上・笹川流れ国際トライアスロン大会',
-		short_name: '村上2023',
-		starttime: new Date('2023-09-24T09:20' + '+09:00').getTime(),
-		weather: '晴れ',
-		distance: {
-			swim: 1.5,
-			bike: 40,
-			run: 10,
-		},
-		locale: '日本, 新潟県',
-		url: 'https://www.jtu.or.jp/wordpress/wp-content/uploads/2024/01/event.report_murakami2023.pdf',
-	},
-	result_id: '225_1', output_file: 'murakami_2023'
-};
+app.get('/jtu/:race_id', (req, res) => {
+	// リザルト取得
+	console.log(`start to get race result: ${req.params.race_id}`);
 
-const yusui_2024_m = {
-	course: {
-		name: '第31回遊水地ふれあい トライアスロン群馬大会 2024 男子',
-		short_name: '遊水地2024(男子)',
-		starttime: new Date('2024-05-19T09:30' + '+09:00').getTime(),
-		weather: '曇りのち雨',
-		distance: {
-			swim: 1.5,
-			bike: 42,
-			run: 10,
-		},
-		locale: '日本, 群馬県',
-		url: 'https://www.gunma-triathlon.com/wp-content/uploads/2024/05/39751804b1f4c77387574b5511344435.pdf',
-	},
-	result_id: '246_1', output_file: 'yusui_2024m'
-};
+	fetch(`https://results.jtu.or.jp/api/programs/${req.params.race_id}/result_tables`)
+		.then(res => res.json())
+		.then(json => json.res.body[0].result_table_id)
+		.then(result_table_id => fetch('https://results.jtu.or.jp/api/results?cond%5Bresult_table_id%5D=' + result_table_id))
+		.then(res => res.json())
+		.then(json => res.json(json));
+});
 
-const yusui_2024_f = {
-	course: {
-		name: '第31回遊水地ふれあい トライアスロン群馬大会 2024 女子',
-		short_name: '遊水地2024(女子)',
-		starttime: new Date('2024-05-19T09:30' + '+09:00').getTime(),
-		weather: '曇りのち雨',
-		distance: {
-			swim: 1.5,
-			bike: 42,
-			run: 10,
-		},
-		locale: '日本, 群馬県',
-		url: 'https://www.gunma-triathlon.com/wp-content/uploads/2024/05/39751804b1f4c77387574b5511344435.pdf',
-	},
-	result_id: '246_2', output_file: 'yusui_2024f'
-};
+app.listen(3000);
 
-const setouchi = {
-	course: {
-		name: '瀬戸内しまなみ海道 今治伯方島トライアスロン',
-		short_name: '今治伯方島',
-		starttime: new Date('2024-09-15T08:00' + '+09:00').getTime(),
-		weather: '曇り',
-		distance: {
-			swim: 1.5,
-			bike: 40,
-			run: 10,
-		},
-		locale: '日本, 愛媛県',
-		url: 'https://imabari-triathlon.com/',
-	},
-	result_id: '285_1', output_file: 'imabari_2024'
-};
-
-
-const ishigaki_2023 = {
-	course: {
-		name: '石垣島トライアスロン大会2023',
-		short_name: 'イシトラ',
-		starttime: new Date('2023-04-09T08:00' + '+09:00').getTime(),
-		weather: '晴れ',
-		distance: {
-			swim: 1.5,
-			bike: 40,
-			run: 10,
-		},
-		locale: '日本, 沖縄県',
-		url: 'https://www.jtu.or.jp/news/2023/04/11/49661/',
-	},
-	result_id: '172_1', output_file: 'ishigaki_2023'
-};
-
-const world_2023_yokohama = {
-	course: {
-		name: 'ワールドトライアスロンシリーズ （2023/横浜）エイジグループ',
-		short_name: 'ワールドS(横浜/std)',
-		starttime: new Date('2023-05-11T08:00' + '+09:00').getTime(),
-		weather: '晴れ',
-		distance: {
-			swim: 1.5,
-			bike: 40,
-			run: 10,
-		},
-		locale: '日本, 神奈川県',
-		url: 'https://www.jtu.or.jp/news/2023/05/11/50081/',
-	},
-	result_id: '176_2', output_file: 'world_2023_yokohama'
-};
-
-const kasumigaura_2024_m = {
-	course: {
-		name: '第5回 霞ヶ浦トライアスロンフェスタ 2024 ミドル',
-		short_name: '霞ヶ浦(mid)',
-		starttime: new Date('2024-09-15T08:00' + '+09:00').getTime(),
-		weather: '晴れ',
-		locale: '日本, 神奈川県',
-		url: 'https://kasumigaura-tf.com/',
-		category: 'middle',
-		laps: {
-			keys: [
-				{ name: 'record', range: 'middle', units: '' },
-				{ name: 'run-1', range: 5, units: 'km' },
-				{ name: 'bike', range: 71, units: 'km' },
-				{ name: 'run-2', range: 10.5, units: 'km' },
-			],
-			main: 'record',
-		},
-	},
-	result_id: '287_1', output_file: 'kasumigaura_2024_mid'
-};
-
-const kasumigaura_2024_s = {
-	course: {
-		name: '第5回 霞ヶ浦トライアスロンフェスタ 2024 スタンダード',
-		short_name: '霞ヶ浦(std)',
-		starttime: new Date('2024-09-15T08:00' + '+09:00').getTime(),
-		weather: '晴れ',
-		locale: '日本, 神奈川県',
-		url: 'https://kasumigaura-tf.com/',
-		category: 'standard distance',
-		laps: {
-			keys: [
-				{ name: 'record', range: 'standard', units: '' },
-				{ name: 'run-1', range: 3.0, units: 'km' },
-				{ name: 'bike', range: 40.6, units: 'km' },
-				{ name: 'run-2', range: 7.0, units: 'km' },
-			],
-			main: 'record',
-		},
-	},
-	result_id: '287_3', output_file: 'kasumigaura_2024_std'
-};
-
-const kasumigaura_2024_b = {
-	course: {
-		name: '第5回 霞ヶ浦トライアスロンフェスタ 2024 ビギナー',
-		short_name: '霞ヶ浦(bgn)',
-		starttime: new Date('2024-09-15T08:00' + '+09:00').getTime(),
-		weather: '晴れ',
-		locale: '日本, 神奈川県',
-		url: 'https://kasumigaura-tf.com/',
-		category: 'super-sprint distance',
-		laps: {
-			keys: [
-				{ name: 'record', range: 'super-sprint', units: '' },
-				{ name: 'run-1', range: 3.0, units: 'km' },
-				{ name: 'bike', range: 8.6, units: 'km' },
-				{ name: 'run-2', range: 3.5, units: 'km' },
-			],
-			main: 'record',
-		},
-	},
-	result_id: '287_5', output_file: 'kasumigaura_2024_bgn'
-};
-
-
-const target = kasumigaura_2024_b;
-
-Promise.all([
-	Course.get(target.course),
-	Result.get(target.result_id).then(json => formatter.to_trist_from_jtu(json))
-]).then(([course, result]) => fs.writeFile('./out/' + target.output_file + '.json', JSON.stringify({ course, result })));
-
+console.log("Access to http://localhost:3000");
