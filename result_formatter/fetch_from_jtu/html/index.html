@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<script>
+		/**
+		 * @typedef JtuEvent
+		 * @prop {string} event_date
+		 * @prop {string} event_id
+		 * @prop {string?} event_location
+		 * @prop {string} event_name
+		 * @prop {number} event_result_opened
+		 * @prop {Array<string>} event_tag
+		 */
+
+		/**
+		 * @typedef JtuProgram
+		 * @prop {string} event_id
+		 * @prop {string} program_id
+		 * @prop {string} program_name
+		 * @prop {number} program_order
+		 */
+
+		/**
+		 * @typedef JtuResult
+		 * @prop {number} result_row_order
+		 * @prop {number} result_table_id
+		 * @prop {string?} col_1
+		 * @prop {string?} col_2
+		 * @prop {string?} col_3
+		 * @prop {string?} col_4
+		 * @prop {string?} col_5
+		 * @prop {string?} col_6
+		 * @prop {string?} col_7
+		 * @prop {string?} col_8
+		 * @prop {string?} col_9
+		 * @prop {string?} col_10
+		 * @prop {string?} col_11
+		 * @prop {string?} col_12
+		 * @prop {string?} col_13
+		 * @prop {string?} col_14
+		 * @prop {string?} col_15
+		 * @prop {string?} col_16
+		 * @prop {string?} col_17
+		 * @prop {string?} col_18
+		 * @prop {string?} col_19
+		 * @prop {string?} col_20
+		 * @prop {string?} col_21
+		 */
+
+		/**
+		 * @typedef JtuResultCol
+		 * @prop {string} result_col_caption
+		 * @prop {number} result_col_issub
+		 * @prop {number} result_col_order
+		 * @prop {null} result_col_type
+		 * @prop {number} result_table_id
+		 */
+	</script>
+	<script type="module">
+		window.addEventListener('load', () => {
+			document.querySelector('#get_races').addEventListener('click', () => {
+				const races = document.querySelector('#races');
+
+				fetch('/jtu')
+					.then(res => res.json())
+					.then(json => {
+						races.textContent = '';
+
+						/** @type {Array<JtuEvent>} */
+						const events = json.res.body.events;
+
+						events.filter(({ event_id }) => parseInt(event_id) < 10000)
+							.forEach(event => {
+								const optgroup = document.createElement('optgroup');
+								optgroup.setAttribute('label', `[${event.event_date.split(' ')[0]}] ${event.event_name}`);
+								races.appendChild(optgroup);
+
+								/** @type {Array<JtuProgram>} */
+								const programs = json.res.body.programs[event.event_id];
+								programs.forEach(program => {
+									const option = document.createElement('option');
+									option.setAttribute('value', program.program_id);
+									option.textContent = program.program_name;
+
+									races.appendChild(option);
+
+									option.tag = { event, program };
+								});
+							});
+					});
+			});
+
+			document.querySelector('#get_result').addEventListener('click', () => {
+				// 作業中のデータクリア
+				Array.from(document.querySelectorAll('#course input'))
+					.forEach(input => input.setAttribute('value', ''));
+				const ul = document.querySelector('#result_columns');
+				ul.textContent = '';
+				delete document.querySelector('#output').data;
+
+				const program_id = document.querySelector('#races').value;
+				if (!program_id) {
+					alert('レースを選択してください');
+					return;
+				}
+
+				fetch('/jtu/' + program_id)
+					.then(res => res.json())
+					.then(json => {
+						/** @type {{result_cols: Array<JtuResultCol>, result_list: Array<JtuResult>}} */
+						const data = json.res.body;
+						document.querySelector('#output').data = data;
+					});
+			});
+		}, { once: true });
+	</script>
+</head>
+
+<body>
+	<h1>Result formatter</h1>
+	<p><button id="get_races">レース一覧取得</button></p>
+	<h2>レース一覧</h2>
+	<p><select id="races" size="20"></select></p>
+	<p><button id="get_result">リザルト取得</button></p>
+	<div id="course">
+		<h2>レース情報</h2>
+	</div>
+	<div>
+		<h2>リザルト列マッパー</h2>
+		<ul id="result_columns"></ul>
+	</div>
+	<p><button id="output">フォーマット済みリザルト出力</button></p>
+</body>
+
+</html>
