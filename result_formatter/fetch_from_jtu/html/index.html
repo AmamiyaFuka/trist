@@ -57,6 +57,26 @@
 		 * @prop {number} result_table_id
 		 */
 	</script>
+	<script>
+		function remove_lap(sender) {
+			const li = sender.parentElement.parentElement;
+			li.parentElement.removeChild(li);
+		};
+
+		function add_lap(lap = 'swim', range = 1.5) {
+			const ul = document.querySelector('#course_distances');
+			const template = document.querySelector('#template_distance');
+
+			const li = template.cloneNode(true);
+			li.removeAttribute('id');
+			li.removeAttribute('style');
+
+			li.querySelector('[name="lap"]').value = lap;
+			li.querySelector('[name="range"]').value = range;
+
+			ul.appendChild(li);
+		};
+	</script>
 	<script type="module">
 		window.addEventListener('load', () => {
 			document.querySelector('#get_races').addEventListener('click', () => {
@@ -113,6 +133,10 @@
 						document.querySelector('#output').data = data;
 					});
 			});
+
+			add_lap('swim', 1.5);
+			add_lap('bike', 40);
+			add_lap('run', 10);
 		}, { once: true });
 	</script>
 </head>
@@ -122,9 +146,68 @@
 	<p><button id="get_races">レース一覧取得</button></p>
 	<h2>レース一覧</h2>
 	<p><select id="races" size="20"></select></p>
-	<p><button id="get_result">リザルト取得</button></p>
 	<div id="course">
 		<h2>レース情報</h2>
+		<p>
+			<label>レース名<input type="text" name="name" id="course_name"></label>
+			<label>略称<input type="text" name="short_name" id="course_short_name"></label>
+		</p>
+		<p>
+			<label>開催地<input type="text" name="locale" id="course_locale"></label>
+			<label>出走時間<input type="text" name="starttime" id="course_starttime"></label>
+			<label>天気<input type="text" name="weather" id="course_weather"></label>
+		</p>
+		<div>
+			<h3>ディスタンス</h3>
+			<button onclick="add_lap();">ラップ追加</button>
+			<ul id="course_distances">
+				<li id="template_distance" style="display: none;"><label>
+						<button onclick="remove_lap(this);">削除</button>
+						<select name="lap">
+							<option value="swim">スイム</option>
+							<option value="bike">バイク</option>
+							<option value="run">ラン</option>
+						</select>
+						<input type="number" name="range">
+						<input type="text" name="unit" value="km" disabled>
+					</label></li>
+			</ul>
+			<label>カテゴリ<select>
+					<option value="long">ロング</option>
+					<option value="middle">ミドル</option>
+					<option value="standard" selected>スタンダード</option>
+					<option value="sprint">スプリント</option>
+					<option value="super-sprint">スーパースプリント</option>
+					<option vlaue="other">その他</option>
+				</select></label>
+		</div>
+		<label>URL<input type="text" name="url" id="course_url"></label>
+
+		<script>
+			const c = {
+				"race": "kasumigaura_2024_std",
+				"label": "霞ヶ浦(std)",
+				"course": {
+					"name": "第5回 霞ヶ浦トライアスロンフェスタ 2024 スタンダード",
+					"short_name": "霞ヶ浦(std)",
+					"starttime": 1726354800000,
+					"weather": "晴れ",
+					"locale": "日本, 神奈川県",
+					"url": "https://kasumigaura-tf.com/",
+					"category": "standard distance",
+					"laps": {
+						"keys": [
+							{ "name": "record", "range": "standard", "units": "" },
+							{ "name": "run-1", "range": 3, "units": "km" },
+							{ "name": "bike", "range": 40.6, "units": "km" },
+							{ "name": "run-2", "range": 7, "units": "km" }
+						],
+						"main": "record"
+					}
+				}
+			}
+		</script>
+		<p><button id="get_result">リザルト取得</button></p>
 	</div>
 	<div>
 		<h2>リザルト列マッパー</h2>
