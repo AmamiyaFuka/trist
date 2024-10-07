@@ -53,7 +53,7 @@
 		 * @prop {string} result_col_caption
 		 * @prop {number} result_col_issub
 		 * @prop {number} result_col_order
-		 * @prop {null} result_col_type
+		 * @prop {string?} result_col_type
 		 * @prop {number} result_table_id
 		 */
 	</script>
@@ -111,12 +111,48 @@
 					});
 			});
 
+			document.querySelector('#races').addEventListener('change', () => {
+				/** @type {{event: JtuEvent, program: JtuProgram}} */
+				const { event, program } = document.querySelector('#races').selectedOptions[0].tag;
+
+				document.querySelector('#course_name').value = event.event_name + ' ' + program.program_name;
+				document.querySelector('#course_starttime').value = event.event_date;
+
+				const city = event.event_location.substring(0, 3);
+				document.querySelector('#course_locale').value = ['日本', ((city === '神奈川' || city === '和歌山') ? city + '県' : city)].join(', ');
+			});
+
 			document.querySelector('#get_result').addEventListener('click', () => {
 				// 作業中のデータクリア
-				Array.from(document.querySelectorAll('#course input'))
-					.forEach(input => input.setAttribute('value', ''));
 				const ul = document.querySelector('#result_columns');
 				ul.textContent = '';
+				const template = document.querySelector('#template_col');
+				{
+					Array.from(template.querySelectorAll('option.lap'))
+						.forEach(option => option.parentElement.removeChild(option));
+
+					const laps = Array.from(document.querySelectorAll('#course_distances select[name="lap"]'))
+						.map(select => select.value);
+
+					const select = template.querySelector('select');
+					laps.forEach((x, i, a) => {
+						const n = a.filter(y => y === x).length;
+						const option = document.createElement('option');
+						option.classList.add('lap');
+						if (n === 1) {
+							option.value = x;
+							option.textContent = x;
+						} else {
+							const count = a.slice(0, i).filter(y => y === x).length;
+							const t = x + '-' + (count + 1);
+							option.value = t;
+							option.textContent = t;
+						}
+
+						select.appendChild(option);
+					});
+				}
+
 				delete document.querySelector('#output').data;
 
 				const program_id = document.querySelector('#races').value;
@@ -131,6 +167,21 @@
 						/** @type {{result_cols: Array<JtuResultCol>, result_list: Array<JtuResult>}} */
 						const data = json.res.body;
 						document.querySelector('#output').data = data;
+
+						data.result_cols.forEach(col => {
+							const li = template.cloneNode(true);
+							li.removeAttribute('id');
+							li.removeAttribute('style');
+
+							li.querySelector('.order').textContent = col.result_col_order;
+							li.querySelector('.caption').textContent = col.result_col_caption;
+							li.querySelector('.type').textContent = col.result_col_type;
+
+							li.querySelector('.example').textContent = data.result_list[0]['col_' + col.result_col_order];
+
+
+							ul.appendChild(li);
+						});
 					});
 			});
 
@@ -149,37 +200,37 @@
 	<div id="course">
 		<h2>レース情報</h2>
 		<p>
-			<label>レース名<input type="text" name="name" id="course_name"></label>
-			<label>略称<input type="text" name="short_name" id="course_short_name"></label>
+			<label>レース名<input type="text" name="name" id="course_name" size="60"></label><br>
+			<label>略称<input type="text" name="short_name" id="course_short_name"></label><br>
 		</p>
 		<p>
-			<label>開催地<input type="text" name="locale" id="course_locale"></label>
-			<label>出走時間<input type="text" name="starttime" id="course_starttime"></label>
-			<label>天気<input type="text" name="weather" id="course_weather"></label>
+			<label>開催地<input type="text" name="locale" id="course_locale"></label><br>
+			<label>出走時間<input type="text" name="starttime" id="course_starttime"></label><br>
+			<label>天気<input type="text" name="weather" id="course_weather"></label><br>
 		</p>
 		<div>
 			<h3>ディスタンス</h3>
 			<button onclick="add_lap();">ラップ追加</button>
+			<li id="template_distance" style="display: none;"><label>
+					<button onclick="remove_lap(this);">削除</button>
+					<select name="lap">
+						<option value="swim">スイム</option>
+						<option value="bike">バイク</option>
+						<option value="run">ラン</option>
+					</select>
+					<input type="number" name="range">
+					<input type="text" name="unit" value="km" disabled>
+				</label></li>
 			<ul id="course_distances">
-				<li id="template_distance" style="display: none;"><label>
-						<button onclick="remove_lap(this);">削除</button>
-						<select name="lap">
-							<option value="swim">スイム</option>
-							<option value="bike">バイク</option>
-							<option value="run">ラン</option>
-						</select>
-						<input type="number" name="range">
-						<input type="text" name="unit" value="km" disabled>
-					</label></li>
 			</ul>
 			<label>カテゴリ<select>
-					<option value="long">ロング</option>
-					<option value="middle">ミドル</option>
-					<option value="standard" selected>スタンダード</option>
-					<option value="sprint">スプリント</option>
-					<option value="super-sprint">スーパースプリント</option>
-					<option vlaue="other">その他</option>
-				</select></label>
+				<option value="long">ロング</option>
+				<option value="middle">ミドル</option>
+				<option value="standard" selected>スタンダード</option>
+				<option value="sprint">スプリント</option>
+				<option value="super-sprint">スーパースプリント</option>
+				<option vlaue="other">その他</option>
+			</select></label>
 		</div>
 		<label>URL<input type="text" name="url" id="course_url"></label>
 
@@ -211,6 +262,38 @@
 	</div>
 	<div>
 		<h2>リザルト列マッパー</h2>
+		<li id="template_col" style="display: none;">
+			<label>
+				<span class="order"></span>
+				<span class="caption"></span>
+				<span class="type"></span>
+				<span class="example"></span>
+				<select name="col_name">
+					<option value="">（利用しない）</option>
+					<option value="display_name">表示名</option>
+					<option value="rank">総合順位</option>
+					<option value="number">ナンバー（ゼッケン）</option>
+					<option value="section">区分（年齢区分など）</option>
+					<option value="stats.record.time">総合タイム</option>
+				</select>
+			</label>
+		</li>
+
+		<script>
+			const row = {
+				"display_name": "サン プル0",
+				"rank": "1",
+				"number": "1000",
+				"section": "30-39歳",
+				"stats": {
+					"swim": { "time": 1933 },
+					"bike": { "time": 3512 },
+					"run": { "time": 2994 },
+					"swim-1": { "time": 1994 },
+					"record": { "time": 8439 }
+				}
+			};
+		</script>
 		<ul id="result_columns"></ul>
 	</div>
 	<p><button id="output">フォーマット済みリザルト出力</button></p>
