@@ -50,7 +50,7 @@
 
 		/**
 		 * @typedef JtuResultCol
-		 * @prop {string} result_col_caption
+		 * @prop {string?} result_col_caption
 		 * @prop {number} result_col_issub
 		 * @prop {number} result_col_order
 		 * @prop {string?} result_col_type
@@ -120,7 +120,25 @@
 
 				const city = event.event_location.substring(0, 3);
 				document.querySelector('#course_locale').value = ['日本', ((city === '神奈川' || city === '和歌山') ? city + '県' : city)].join(', ');
+
+				document.querySelector('#search_race').setAttribute('href', `https://www.google.com/search?q=${encodeURIComponent(event.event_name)}`);
 			});
+
+			/** run-1, bike, run-2 みたいにナンバリングが必要かどうかの処理をする
+			 * @returns {Array<string>}
+			 */
+			const get_laps = () => Array.from(document.querySelectorAll('#course_distances select[name="lap"]'))
+				.map(select => select.value)
+				.map((x, i, a) => {
+					const n = a.filter(y => y === x).length;
+					if (n === 1) {
+						return x;
+					} else {
+						const count = a.slice(0, i).filter(y => y === x).length;
+						const t = x + '-' + (count + 1);
+						return t;
+					}
+				});
 
 			document.querySelector('#get_result').addEventListener('click', () => {
 				// 作業中のデータクリア
@@ -131,23 +149,13 @@
 					Array.from(template.querySelectorAll('option.lap'))
 						.forEach(option => option.parentElement.removeChild(option));
 
-					const laps = Array.from(document.querySelectorAll('#course_distances select[name="lap"]'))
-						.map(select => select.value);
-
 					const select = template.querySelector('select');
-					laps.forEach((x, i, a) => {
-						const n = a.filter(y => y === x).length;
+					get_laps().forEach(x => {
 						const option = document.createElement('option');
 						option.classList.add('lap');
-						if (n === 1) {
-							option.value = x;
-							option.textContent = x;
-						} else {
-							const count = a.slice(0, i).filter(y => y === x).length;
-							const t = x + '-' + (count + 1);
-							option.value = t;
-							option.textContent = t;
-						}
+
+						option.value = ['stats', x, 'time'].join('.');
+						option.textContent = x;
 
 						select.appendChild(option);
 					});
@@ -174,8 +182,7 @@
 							li.removeAttribute('style');
 
 							li.querySelector('.order').textContent = col.result_col_order;
-							li.querySelector('.caption').textContent = col.result_col_caption;
-							li.querySelector('.type').textContent = col.result_col_type;
+							li.querySelector('.caption').textContent = col.result_col_caption ?? col.result_col_type;
 
 							li.querySelector('.example').textContent = data.result_list[0]['col_' + col.result_col_order];
 
@@ -185,11 +192,144 @@
 					});
 			});
 
+			document.querySelector('#output').addEventListener('click', () => {
+				const course = { laps: { main: 'record' } };
+				['name', 'short_name', 'weather', 'locale', 'url', 'category', 'starttime']
+					.forEach(k => course[k] = document.querySelector('#course_' + k).value);
+
+				const laps = get_laps();
+				course.laps.keys = Array.from(document.querySelectorAll('#course_distances .lap'))
+					.map((li, i) => Object.fromEntries(['name', 'range', 'units'].map(k => {
+						if (k === 'name') return [k, laps[i]];
+						return [k, li.querySelector(`[name=${k}]`).value];
+					})));
+				course.laps.keys.unshift({name: 'record', range: course.category, units: ''});
+
+				// 整形
+				course.starttime = new Date(course.starttime + '+09:00').getTime();
+				course.category += ' distance';
+
+				console.log(course);
+
+				// マップ先が全て設定されているか、二重登録されていないかを最初に確認する
+				const mapper_to = Array.from(document.querySelector('[name=col_name]').querySelectorAll('option')).map(x => x.value).filter(x => x);
+				const undefined_to = [];
+				let fault = false;
+				(async () => Object.fromEntries(mapper_to.map(x => {
+					const maps = Array.from(document.querySelectorAll('#result_columns li'))
+						.filter(li => li.querySelector('[name=col_name]').value === x);
+
+					if (maps.length > 1) {
+						fault = true;
+						maps.forEach(li => li.querySelector('.alert').textContent = 'マップ先が二重登録されてます');
+						return;
+					}
+					if (maps.length === 0) {
+						fault = true;
+						undefined_to.push(x);
+						return;
+					}
+
+					return [x, 'col_' + maps[0].querySelector('.order').textContent];
+				})))()
+					.catch(err => {
+						if (undefined_to.length > 0) {
+							document.querySelector('#result_columns_alert').textContent =
+								'マップ先が登録されていません。： ' + undefined_to.join(', ');
+						}
+
+						throw err;
+					})
+					.then(mapper => {
+						const hmmss_to_number = hmmss => hmmss?.split(':').reduce((a, b) => a * 60 + parseInt(b), 0);
+
+						const mapper_func = row => {
+							const r = {};
+
+							Object.entries(mapper).forEach(([k, v]) => {
+								const ks = k.split('.');
+								let n = r;
+								let s, t;
+								for (t of ks) {
+									s = n;
+									if (!(t in n)) n[t] = {};
+									n = n[t];
+								}
+
+								if (k.startsWith('stats')) {
+									// hh:mm:ss -> time変換
+									s[t] = hmmss_to_number(row[v]);
+								} else {
+									s[t] = row[v].replaceAll('　', '');
+								}
+							});
+
+							return r;
+						};
+
+						return mapper_func;
+					})
+					.then(mapper_func => document.querySelector('#output').data.result_list.map(row => mapper_func(row)))
+					.then(result => {
+						const blob = new Blob([JSON.stringify({course, result})], {type: 'application/json'});
+						const download_url = URL.createObjectURL(blob);
+
+						const a = document.createElement('a');
+						a.href = download_url;
+						a.download = course.short_name + '.json';
+						a.click();
+
+						URL.revokeObjectURL(download_url);
+					});
+			});
+
+
+			// 初期化処理
 			add_lap('swim', 1.5);
 			add_lap('bike', 40);
 			add_lap('run', 10);
+
+			document.querySelector('#get_races').dispatchEvent(new Event('click'));
 		}, { once: true });
 	</script>
+
+	<style>
+		#result_columns li {
+			list-style: none;
+
+			label {
+				span {
+					display: inline-block;
+				}
+
+				span[class="order"] {
+					width: 2em;
+				}
+
+				span[class="caption"] {
+					width: 8em;
+					text-align: end;
+					font-weight: bold;
+				}
+
+				span[class="type"] {
+					display: none;
+				}
+
+				span[class="example"] {
+					width: 6em;
+				}
+
+				span[class="example"]::before {
+					content: '[';
+				}
+
+				span[class="example"]::after {
+					content: ']';
+				}
+			}
+		}
+	</style>
 </head>
 
 <body>
@@ -201,6 +341,7 @@
 		<h2>レース情報</h2>
 		<p>
 			<label>レース名<input type="text" name="name" id="course_name" size="60"></label><br>
+			<a href="" id="search_race">Google</a><br>
 			<label>略称<input type="text" name="short_name" id="course_short_name"></label><br>
 		</p>
 		<p>
@@ -211,7 +352,7 @@
 		<div>
 			<h3>ディスタンス</h3>
 			<button onclick="add_lap();">ラップ追加</button>
-			<li id="template_distance" style="display: none;"><label>
+			<li id="template_distance" class="lap" style="display: none;"><label>
 					<button onclick="remove_lap(this);">削除</button>
 					<select name="lap">
 						<option value="swim">スイム</option>
@@ -219,45 +360,21 @@
 						<option value="run">ラン</option>
 					</select>
 					<input type="number" name="range">
-					<input type="text" name="unit" value="km" disabled>
+					<input type="text" name="units" value="km" disabled>
 				</label></li>
 			<ul id="course_distances">
 			</ul>
-			<label>カテゴリ<select>
-				<option value="long">ロング</option>
-				<option value="middle">ミドル</option>
-				<option value="standard" selected>スタンダード</option>
-				<option value="sprint">スプリント</option>
-				<option value="super-sprint">スーパースプリント</option>
-				<option vlaue="other">その他</option>
-			</select></label>
+			<label>カテゴリ<select id="course_category">
+					<option value="long">ロング</option>
+					<option value="middle">ミドル</option>
+					<option value="standard" selected>スタンダード</option>
+					<option value="sprint">スプリント</option>
+					<option value="super-sprint">スーパースプリント</option>
+					<option vlaue="other">その他</option>
+				</select></label>
 		</div>
 		<label>URL<input type="text" name="url" id="course_url"></label>
 
-		<script>
-			const c = {
-				"race": "kasumigaura_2024_std",
-				"label": "霞ヶ浦(std)",
-				"course": {
-					"name": "第5回 霞ヶ浦トライアスロンフェスタ 2024 スタンダード",
-					"short_name": "霞ヶ浦(std)",
-					"starttime": 1726354800000,
-					"weather": "晴れ",
-					"locale": "日本, 神奈川県",
-					"url": "https://kasumigaura-tf.com/",
-					"category": "standard distance",
-					"laps": {
-						"keys": [
-							{ "name": "record", "range": "standard", "units": "" },
-							{ "name": "run-1", "range": 3, "units": "km" },
-							{ "name": "bike", "range": 40.6, "units": "km" },
-							{ "name": "run-2", "range": 7, "units": "km" }
-						],
-						"main": "record"
-					}
-				}
-			}
-		</script>
 		<p><button id="get_result">リザルト取得</button></p>
 	</div>
 	<div>
@@ -266,7 +383,6 @@
 			<label>
 				<span class="order"></span>
 				<span class="caption"></span>
-				<span class="type"></span>
 				<span class="example"></span>
 				<select name="col_name">
 					<option value="">（利用しない）</option>
@@ -277,6 +393,7 @@
 					<option value="stats.record.time">総合タイム</option>
 				</select>
 			</label>
+			<span class="alert"></span>
 		</li>
 
 		<script>
@@ -295,6 +412,7 @@
 			};
 		</script>
 		<ul id="result_columns"></ul>
+		<p id="result_columns_alert"></p>
 	</div>
 	<p><button id="output">フォーマット済みリザルト出力</button></p>
 </body>
